@@ -28,11 +28,11 @@ def zeroconf_info():
         if state_change is zeroconfig.ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
-                address = "{}:{}".format(socket.inet_ntoa(info.address), info.port)
+                address = "{} {}:{}".format(info.server, socket.inet_ntoa(info.address), info.port)
                 props = str(info.properties.items())
                 ret_info.append((address, props))
     zc = zeroconfig.Zeroconf()
     browser = zeroconfig.ServiceBrowser(zc, "_http._tcp.local.", handlers=[on_change])
-    sleep(0.25)
-    concurrency.concurrent(lambda: zc.close())
+    sleep(5)
+    concurrency.concurrent(lambda: zc.close())()
     return ret_info
