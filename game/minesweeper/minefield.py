@@ -1,5 +1,19 @@
+import random
+import json
+
 from .contents import Contents
 from .cell import Cell
+
+
+def json_dump(indata):
+    """Creates prettified json representation of passed in object."""
+    return json.dumps(indata, sort_keys=True, indent=4, \
+     separators=(',', ': '))#, cls=date_handler)
+
+
+def jp(indata):
+    """Prints json representation of object"""
+    print(json_dump(indata))
 
 
 def cell_neighbors(mfield, x, y):
@@ -109,6 +123,14 @@ class MineField(object):
         self.set_mine_contacts()
 
     def __str__(self):
+        rv = {
+                "selected": self.selected,
+                "height": self.height,
+                "width": self.width,
+                "mine_count": self.mine_count,
+                "cells": [cell.json() for row in self.board for cell in row],
+                }
+        return json_dump(rv)
         rv = ""
         rows = []
         for h in range(self.height):
@@ -127,4 +149,3 @@ class MineField(object):
                 tojoin.append(footer)
             rows.append("\n".join(tojoin))
         return "\n".join(rows)
-
