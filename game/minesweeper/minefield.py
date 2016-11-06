@@ -122,30 +122,19 @@ class MineField(object):
                 adj.contents = Contents.empty
         self.set_mine_contacts()
 
-    def __str__(self):
+    def json(self):
+        """
+        Method json returns a json serializable object representing this
+        minefield.
+        """
         rv = {
-                "selected": self.selected,
-                "height": self.height,
-                "width": self.width,
-                "mine_count": self.mine_count,
-                "cells": [cell.json() for row in self.board for cell in row],
-                }
-        return json_dump(rv)
-        rv = ""
-        rows = []
-        for h in range(self.height):
-            header = ""
-            mid = ""
-            footer = ""
-            for w in range(self.width):
-                c = self.board[w][h]
-                nh, nm, nl = c.render()
-                header += nh
-                mid += nm
-                footer += nl
-            # Only include the footer if it's the bottom row
-            tojoin = [header, mid]
-            if footer:
-                tojoin.append(footer)
-            rows.append("\n".join(tojoin))
-        return "\n".join(rows)
+            "selected": self.selected,
+            "height": self.height,
+            "width": self.width,
+            "mine_count": self.mine_count,
+            "cells": [cell.json() for row in self.board for cell in row],
+        }
+        return rv
+
+    def __str__(self):
+        return json_dump(self.json())

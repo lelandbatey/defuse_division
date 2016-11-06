@@ -10,7 +10,10 @@ actor model.
 import curses
 import queue
 
-from . import curses_colors
+import time
+import sys
+
+from . import curses_colors, display
 from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
 
@@ -23,7 +26,6 @@ def input_reader(outqueue, getch):
     while True:
         out = getch()
         outqueue.put(("user-input", out))
-        # print("put it in")
 
 @concurrent
 def state_change_reader(outqueue, getstate):
@@ -56,28 +58,62 @@ def key_name(ch):
         return chr(ch)
     return "!NOTFOUND!"
 
+def mock_client():
+    class FakeClient(object):
+        def __init__(self):
+            self.mfield = MineField()
+            self.stateq = queue.Queue()
+        def send_input(self, *args):
+            # Do nothing with the input arguments, only send them along
+            self.stateq.put(self.mfield.json())
+        def get_state(self, *args):
+            return self.stateq.get()
+    return FakeClient()
+
+
+
+def draw_state(stdscr, state):
+    """
+    draw_state draws the state of a MineField onto a curses window.
+    """
+    startx, starty = 1, 1
+
+    for cell in state['cells']:
+        glyphs = display.assemble_glyphs(cell, state)
+        for g in glyphs:
+            stdscr.addstr(g.y+starty, g.x+startx, g.strng)
+
+
 def main(stdscr):
     if not curses.has_colors():
         curses.start_color()
     curses_colors.colors_init()
+    curses.curs_set(0)
 
     eventq = queue.Queue()
-    stateq = queue.Queue()
+
+    client = mock_client()
 
     input_reader(eventq, stdscr.getch)
-    state_change_reader(eventq, stateq.get)
+    state_change_reader(eventq, client.get_state)
 
-    next_color = color_attr()
-
-    l = 0
-
+    # l = 0
+    # r = 0
+    # next_color = color_attr()
     while True:
         event = eventq.get()
         if event[0] == "user-input":
-            color = next_color()
-            s = key_name(event[1])
-            stdscr.addstr(0, l, s, color)
-            l += len(s)
+            client.send_input(event[1])
+            # color = next_color()
+            # s = key_name(event[1])
+            # if l + len(s) >= curses.COLS:
+                # l = 0
+                # r += 1
+            # stdscr.addstr(r, l, s, color)
+            # l += len(s)
+            # stdscr.refresh()
+        elif event[0] == "new-state":
+            draw_state(stdscr, event[1])
             stdscr.refresh()
             # curses.
             # display_str = event[1].

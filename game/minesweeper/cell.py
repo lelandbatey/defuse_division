@@ -49,7 +49,8 @@ class Cell(object):
         rv = {
             "x": self.x,
             "y": self.y,
-            "contents": self.contents,
+            # "contents": self.contents,
+            'contents': str((self.x, self.y)),
             "probed": self.probed,
             "flaged": self.flaged,
             "neighbors": {
