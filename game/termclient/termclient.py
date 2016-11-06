@@ -81,6 +81,12 @@ def draw_state(stdscr, state):
             for g in glyphs:
                 stdscr.addstr(g.y + starty, g.x + startx, g.strng, g.attr)
 
+def draw_end_msg(stdscr, msg):
+    height, width = stdscr.getmaxyx()
+    y = height - 2
+    fmt = "{{:^{}}}".format(width)
+    msg = fmt.format(msg)
+    stdscr.addstr(y, 0, msg)
 
 def all_dead(state):
     """
@@ -93,6 +99,17 @@ def all_dead(state):
         if player['living']:
             return False
     return True
+
+def victorious(state):
+    """
+    Function victorious returns the name of the first player it finds which has
+    'victory' of True. If no player has a victory, return None
+    """
+    players = state['players']
+    for pname in players:
+        player = players[pname]
+        if player['victory']:
+            return pname
 
 
 def extract_contents(stdscr):
@@ -124,12 +141,20 @@ def main(stdscr):
         except KeyboardInterrupt:
             break
         if event[0] == "user-input":
+            # print(event[1], key_name(event[1]))
             client.send_input(event[1])
 
         elif event[0] == "new-state":
             state = event[1]
             draw_state(stdscr, state)
             stdscr.refresh()
+            # Print a 'you lose' message and exit
             if all_dead(state):
+                draw_end_msg(stdscr, "Eliminated by mines, you lose!")
+                break
+            # Print a 'Winner' message and exit
+            victor = victorious(state)
+            if victor:
+                draw_end_msg(stdscr, "{} wins!".format(victor))
                 break
     return extract_contents(stdscr)

@@ -44,7 +44,7 @@ def cell_neighbors(mfield, x, y):
 
 
 class MineField(object):
-    def __init__(self, width=9, height=9, mine_count=None):
+    def __init__(self, width=12, height=12, mine_count=None):
         self.width = width
         self.height = height
         self.mine_count = mine_count

@@ -50,6 +50,24 @@ def _probe_selected(field):
         return False
     return True
 
+def _flag_selected(field):
+    x, y = field.selected
+    cell = field.board[x][y]
+    cell.flaged = not cell.flaged
+
+
+def check_win(mfield):
+    correct_flags = 0
+    for h in range(mfield.height):
+        for w in range(mfield.width):
+            c = mfield.board[w][h]
+            if c.contents == Contents.mine and c.flaged:
+                correct_flags += 1
+    if correct_flags == mfield.mine_count:
+        # win_game(mfield)
+        return True
+    return False
+
 
 class Player(object):
     """
@@ -62,6 +80,7 @@ class Player(object):
         self.bout = bout
         self.mfield = MineField()
         self.living = True
+        self.victory = False
 
     def send_input(self, inpt):
         # Just pass the input to the parent bout, but with info saying that
@@ -75,7 +94,8 @@ class Player(object):
         return {
             'name': self.name,
             'living': self.living,
-            'minefield': self.mfield.json()
+            'minefield': self.mfield.json(),
+            'victory': self.victory,
         }
 
 
@@ -86,7 +106,6 @@ class Bout(object):
     """
 
     def __init__(self):
-        # self.mfield = MineField()
         self.stateq = queue.Queue()
         self.players = {"player1": Player("player1", self), }
 
@@ -101,6 +120,11 @@ class Bout(object):
         if inpt == curses.KEY_ENTER or inpt == ord('\n'):
             if not _probe_selected(field):
                 player.living = False
+        if inpt == ord('f'):
+            _flag_selected(field)
+
+        if check_win(field):
+            player.victory = True
 
         self.stateq.put(self.json())
 

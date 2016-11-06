@@ -137,7 +137,6 @@ def build_contents(cell, player):
             [int(v == True) for _, v in cell['neighbors'].items()])
         # print(mine_contacts)
         rv.strng = " {} ".format(mine_contacts)
-        # rv.attr = get_colorpair('white-black')
         rv.attr = contacts_color(mine_contacts)
 
     # If our cell's selected, mark it red
@@ -146,6 +145,8 @@ def build_contents(cell, player):
 
     if not cell['probed']:
         rv.strng = Contents.empty
+    if cell['flaged']:
+        rv.strng = Contents.flag
 
     if not player['living']:
         if cell['contents'] == Contents.mine:
