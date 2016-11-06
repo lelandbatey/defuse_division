@@ -16,7 +16,7 @@ import sys
 from . import curses_colors, display
 from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
-from ..game import Game
+from ..game import Bout
 
 
 @concurrent
@@ -66,32 +66,42 @@ def key_name(ch):
     return "!NOTFOUND!"
 
 
-def mock_client():
-    class FakeClient(object):
-        def __init__(self):
-            self.mfield = MineField()
-            self.stateq = queue.Queue()
-
-        def send_input(self, *args):
-            # Do nothing with the input arguments, only send them along
-            self.stateq.put(self.mfield.json())
-
-        def get_state(self, *args):
-            return self.stateq.get()
-
-    return FakeClient()
-
-
 def draw_state(stdscr, state):
     """
     draw_state draws the state of a MineField onto a curses window.
     """
     startx, starty = 1, 1
 
-    for cell in state['cells']:
-        glyphs = display.assemble_glyphs(cell, state)
-        for g in glyphs:
-            stdscr.addstr(g.y + starty, g.x + startx, g.strng, g.attr)
+    players = state['players']
+    for pname in players:
+        player = players[pname]
+        field = player['minefield']
+        for cell in field['cells']:
+            glyphs = display.assemble_glyphs(cell, player)
+            for g in glyphs:
+                stdscr.addstr(g.y + starty, g.x + startx, g.strng, g.attr)
+
+
+def all_dead(state):
+    """
+    Function all_dead returns True if all players in the current bout have a
+    'living' attribute of False.
+    """
+    players = state['players']
+    for pname in players:
+        player = players[pname]
+        if player['living']:
+            return False
+    return True
+
+
+def extract_contents(stdscr):
+    contents = []
+    height, _ = stdscr.getmaxyx()
+    for line in range(height):
+        contents.append(stdscr.instr(line, 0))
+    contents = [row.decode('utf-8') for row in contents]
+    return '\n'.join(contents)
 
 
 def main(stdscr):
@@ -102,17 +112,24 @@ def main(stdscr):
 
     eventq = queue.Queue()
 
-    # client = mock_client()
-    client = Game()
+    bout = Bout()
+    client = bout.players['player1']
 
     input_reader(eventq, stdscr.getch)
     state_change_reader(eventq, client.get_state)
 
     while True:
-        event = eventq.get()
+        try:
+            event = eventq.get()
+        except KeyboardInterrupt:
+            break
         if event[0] == "user-input":
             client.send_input(event[1])
 
         elif event[0] == "new-state":
-            draw_state(stdscr, event[1])
+            state = event[1]
+            draw_state(stdscr, state)
             stdscr.refresh()
+            if all_dead(state):
+                break
+    return extract_contents(stdscr)

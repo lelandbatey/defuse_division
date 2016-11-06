@@ -7,6 +7,7 @@ import curses
 from ..minesweeper.contents import Contents
 from . import curses_colors
 
+
 def get_colorpair(pair_name):
     val = curses_colors.CURSES_COLORPAIRS[pair_name]
     return curses.color_pair(val)
@@ -103,7 +104,57 @@ def _downright(cx, cy, cell, field):
             return Glyph(x, y, "┼")
 
 
-def assemble_glyphs(cell, state):
+def contacts_color(contacts):
+    if contacts == -1:
+        return get_colorpair('black-green')
+    elif contacts == 0:
+        return get_colorpair('black-black')
+    elif contacts == 1:
+        return get_colorpair('green-black')
+    elif contacts == 2:
+        return get_colorpair('cyan-black')
+    elif contacts == 3:
+        return get_colorpair('yellow-black')
+    elif contacts >= 4:
+        return get_colorpair('magenta-black')
+    else:
+        return get_colorpair('white-black')
+
+
+def build_contents(cell, player):
+    """
+    Function build_contents returns a Glyph representing the contents of a
+    cell, based on the state of that cell and the player who owns that cell.
+    """
+    x = ((1 + len(cell['contents'])) * cell['x']) + 1
+    y = (2 * cell['y']) + 1
+    rv = Glyph(x, y, cell['contents'])
+    rv.attr = get_colorpair('black-white')
+
+    # Probed cells show the number of cells they touch and an appropriate color
+    if cell['probed']:
+        mine_contacts = sum(
+            [int(v == True) for _, v in cell['neighbors'].items()])
+        # print(mine_contacts)
+        rv.strng = " {} ".format(mine_contacts)
+        # rv.attr = get_colorpair('white-black')
+        rv.attr = contacts_color(mine_contacts)
+
+    # If our cell's selected, mark it red
+    if [cell['x'], cell['y']] == player['minefield']['selected']:
+        rv.attr = get_colorpair('white-red')
+
+    if not cell['probed']:
+        rv.strng = Contents.empty
+
+    if not player['living']:
+        if cell['contents'] == Contents.mine:
+            rv.strng = Contents.mine
+    return rv
+
+
+def assemble_glyphs(cell, player):
+    state = player['minefield']
     cwidth = len(cell['contents'])
     # Starting cell position is:
     #     ((length_in_dimension+1)*n) + 1
@@ -114,10 +165,12 @@ def assemble_glyphs(cell, state):
     x = ((1 + cwidth) * cell['x']) + 1
     y = (2 * cell['y']) + 1
 
-    contents_glyph = Glyph(x, y, cell['contents'])
-    # Color our selected cell red
-    if [cell['x'], cell['y']] == state['selected']:
-        contents_glyph.attr = get_colorpair('white-red')
+    contents_glyph = build_contents(cell, player)
+    # contents_glyph = Glyph(x, y, cell['contents'])
+    # Color the contents of our selected cell red
+    # if [cell['x'], cell['y']] == state['selected']:
+    # contents_glyph.attr = get_colorpair('white-red')
+
     borders = [
         # Top border
         Glyph(x, y + 1, "─" * cwidth),
