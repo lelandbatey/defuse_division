@@ -8,7 +8,25 @@ _DIRECTIONKEYS = [curses.KEY_UP, curses.KEY_DOWN, curses.KEY_LEFT,
                   curses.KEY_RIGHT]
 
 
-def _move_select(direction, field):
+class InputMap(object):
+    def __init__(self, args):
+        if args.vimkeys:
+            self.UP = ord('k')
+            self.DOWN = ord('j')
+            self.LEFT = ord('h')
+            self.RIGHT = ord('l')
+            self.PROBEKEY = ord(' ')
+        else:
+            self.UP = curses.KEY_UP
+            self.DOWN = curses.KEY_DOWN
+            self.LEFT = curses.KEY_LEFT
+            self.RIGHT = curses.KEY_RIGHT
+            self.PROBEKEY = ord('\n')
+        self.FLAGKEY = ord('f')
+        self.directionkeys = [self.UP, self.DOWN, self.LEFT, self.RIGHT]
+
+
+def _move_select(direction, field, inputmap):
     """
     Function _move_select changes the 'selected' field of a MineField depending
     on the direction provided. 'direction' must be a curses.KEY_* instance,
@@ -17,13 +35,13 @@ def _move_select(direction, field):
     """
     startloc = field.selected
     delta = [0, 0]
-    if direction == curses.KEY_UP:
+    if direction == inputmap.UP:
         delta = [0, -1]
-    elif direction == curses.KEY_DOWN:
+    elif direction == inputmap.DOWN:
         delta = [0, 1]
-    elif direction == curses.KEY_RIGHT:
+    elif direction == inputmap.RIGHT:
         delta = [1, 0]
-    elif direction == curses.KEY_LEFT:
+    elif direction == inputmap.LEFT:
         delta = [-1, 0]
 
     # Filter out-of-bounds deltas
@@ -50,6 +68,7 @@ def _probe_selected(field):
         return False
     return True
 
+
 def _flag_selected(field):
     x, y = field.selected
     cell = field.board[x][y]
@@ -75,10 +94,14 @@ class Player(object):
     against, as well as passthrough-methods to send input to a parent Bout.
     """
 
-    def __init__(self, name, bout):
+    def __init__(self, name, bout, args):
+        self._args = args
         self.name = name
         self.bout = bout
-        self.mfield = MineField()
+        self.mfield = MineField(
+            height=self._args.height,
+            width=self._args.width,
+            mine_count=args.mines)
         self.living = True
         self.victory = False
 
@@ -105,9 +128,11 @@ class Bout(object):
     all the players playing currently.
     """
 
-    def __init__(self):
+    def __init__(self, args):
+        self.args = args
+        self.inputmap = InputMap(args)
         self.stateq = queue.Queue()
-        self.players = {"player1": Player("player1", self), }
+        self.players = {"player1": Player("player1", self, self.args), }
 
         self.stateq.put(self.json())
 
@@ -115,12 +140,15 @@ class Bout(object):
         player = self.players[inpt_event['player']]
         field = player.mfield
         inpt = inpt_event['input']
-        if inpt in _DIRECTIONKEYS:
-            _move_select(inpt, field)
-        if inpt == curses.KEY_ENTER or inpt == ord('\n'):
+
+        if inpt in self.inputmap.directionkeys:
+            _move_select(inpt, field, self.inputmap)
+
+        if inpt == self.inputmap.PROBEKEY:
             if not _probe_selected(field):
                 player.living = False
-        if inpt == ord('f'):
+
+        if inpt == self.inputmap.FLAGKEY:
             _flag_selected(field)
 
         if check_win(field):

@@ -18,6 +18,8 @@ from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
 from ..game import Bout
 
+DEBUG = False
+
 
 @concurrent
 def input_reader(outqueue, getch):
@@ -81,12 +83,14 @@ def draw_state(stdscr, state):
             for g in glyphs:
                 stdscr.addstr(g.y + starty, g.x + startx, g.strng, g.attr)
 
+
 def draw_end_msg(stdscr, msg):
     height, width = stdscr.getmaxyx()
     y = height - 2
     fmt = "{{:^{}}}".format(width)
     msg = fmt.format(msg)
     stdscr.addstr(y, 0, msg)
+
 
 def all_dead(state):
     """
@@ -99,6 +103,7 @@ def all_dead(state):
         if player['living']:
             return False
     return True
+
 
 def victorious(state):
     """
@@ -121,15 +126,17 @@ def extract_contents(stdscr):
     return '\n'.join(contents)
 
 
-def main(stdscr):
+def main(stdscr, args):
     if not curses.has_colors():
         curses.start_color()
     curses_colors.colors_init()
     curses.curs_set(0)
 
+    # args = parse_cli_args()
+
     eventq = queue.Queue()
 
-    bout = Bout()
+    bout = Bout(args)
     client = bout.players['player1']
 
     input_reader(eventq, stdscr.getch)

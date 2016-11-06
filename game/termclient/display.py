@@ -167,10 +167,6 @@ def assemble_glyphs(cell, player):
     y = (2 * cell['y']) + 1
 
     contents_glyph = build_contents(cell, player)
-    # contents_glyph = Glyph(x, y, cell['contents'])
-    # Color the contents of our selected cell red
-    # if [cell['x'], cell['y']] == state['selected']:
-    # contents_glyph.attr = get_colorpair('white-red')
 
     borders = [
         # Top border
