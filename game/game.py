@@ -57,11 +57,14 @@ def _move_select(direction, field, inputmap):
 
 def _probe_selected(field):
     """
-    Function _probe_selected probes the currently selected cell. If the probed
-    cell contains a mine, return False, otherwise, returns True.
+    Function _probe_selected probes the currently selected cell. If the
+    cell if flagged, ignore probe and return True immediately. If the
+    probed cell contains a mine, return False, otherwise, returns True.
     """
     x, y = field.selected
     cell = field.board[x][y]
+    if cell.flaged:
+        return True
     cell.probe()
 
     if cell.contents == Contents.mine:
