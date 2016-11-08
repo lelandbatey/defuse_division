@@ -1,3 +1,4 @@
+import random
 import curses
 import queue
 
@@ -54,6 +55,47 @@ def _move_select(direction, field, inputmap):
 
     field.selected = [nx, ny]
 
+def _create_foothold(field):
+    """
+    Function _create_foothold will remove mines from around the currently
+    selected cell, ensuring that the current cell cannot have a mine, and that
+    probing that cell will open up some amount of space.
+    """
+    x, y = field.selected
+    cell = field.board[x][y]
+
+    moved_count = 0
+
+    safe_cells = [v for _, v in cell.neighbors.items()]
+    safe_cells += [cell]
+
+    for neighbor in safe_cells:
+        if neighbor.contents == Contents.mine:
+            neighbor.contents = Contents.empty
+            moved_count += 1
+
+    # Place a new mine for each of the mines we had to move out of the way
+    while moved_count > 0:
+        rx, ry = random.randint(0, field.width - 1), random.randint(
+            0, field.height - 1)
+        possible_mine = field.board[rx][ry]
+        # Ensure any new location won't be in the desired foothold
+        if not possible_mine in safe_cells:
+            # Only place mines where there aren't existing mines
+            if not possible_mine.contents == Contents.mine:
+                possible_mine.contents = Contents.mine
+                moved_count -= 1
+
+def _first_probe(field):
+    """
+    Function _first_probe checks if this is the first probe of any cell in this
+    minefield, returning True if it is the first probe, and False if it's not.
+    """
+    cells = [c for row in field.board for c in row]
+    for cell in cells:
+        if cell.probed:
+            return False
+    return True
 
 def _probe_selected(field):
     """
@@ -65,6 +107,9 @@ def _probe_selected(field):
     cell = field.board[x][y]
     if cell.flaged:
         return True
+    # Create a foothold for the first probe
+    if _first_probe(field):
+        _create_foothold(field)
     cell.probe()
 
     if cell.contents == Contents.mine:
