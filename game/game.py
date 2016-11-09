@@ -66,7 +66,7 @@ def _create_foothold(field):
 
     moved_count = 0
 
-    safe_cells = [v for _, v in cell.neighbors.items()]
+    safe_cells = [v for _, v in cell.neighbors.items() if v]
     safe_cells += [cell]
 
     for neighbor in safe_cells:
