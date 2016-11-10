@@ -7,6 +7,7 @@ game. In the case of a new game state, the display on screen is re-drawn.
 At this time, the design of termclient is based on a Golang-esque concurrent
 actor model.
 """
+from threading import Lock
 import curses
 import queue
 
@@ -16,7 +17,7 @@ import sys
 from . import curses_colors, display
 from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
-from ..game import Bout
+from ..game import Bout, Keys
 
 DEBUG = False
 
@@ -117,6 +118,29 @@ def victorious(state):
             return pname
 
 
+def build_keymap(args):
+    """
+    Function build_keymap returns a dictionary from curses keys to game.Keys.
+    """
+    if args.vimkeys:
+        return {
+            ord('k'): Keys.UP,
+            ord('j'): Keys.DOWN,
+            ord('h'): Keys.LEFT,
+            ord('l'): Keys.RIGHT,
+            ord(' '): Keys.PROBE,
+            ord('f'): Keys.FLAG,
+        }
+    return {
+        curses.KEY_UP: Keys.UP,
+        curses.KEY_DOWN: Keys.DOWN,
+        curses.KEY_LEFT: Keys.LEFT,
+        curses.KEY_RIGHT: Keys.RIGHT,
+        ord('\n'): Keys.PROBE,
+        ord('f'): Keys.FLAG,
+    }
+
+
 def extract_contents(stdscr):
     contents = []
     height, _ = stdscr.getmaxyx()
@@ -132,6 +156,8 @@ def main(stdscr, args):
     curses_colors.colors_init()
     curses.curs_set(0)
 
+    keymap = build_keymap(args)
+
     if args.maxsize:
         y, x = stdscr.getmaxyx()
         cwidth = 3
@@ -143,10 +169,20 @@ def main(stdscr, args):
 
     eventq = queue.Queue()
 
-    bout = Bout(args)
-    client = bout.players['player1']
+    bout = Bout(
+        max_players=1,
+        minefield_size=(args.width, args.height),
+        mine_count=args.mines)
+    client = bout.add_player()
 
-    input_reader(eventq, stdscr.getch)
+    # Prevent simultaneous screen refreshes using a lock, to keep from calling
+    # 'getch' while the draw_state() method is also being called.
+    refresh_lock = Lock()
+    def getinput():
+        refresh_lock.acquire()
+        refresh_lock.release()
+        return stdscr.getch()
+    input_reader(eventq, getinput)
     state_change_reader(eventq, client.get_state)
 
     while True:
@@ -155,12 +191,17 @@ def main(stdscr, args):
         except KeyboardInterrupt:
             break
         if event[0] == "user-input":
+            # Map input onto game.Keys before sending it
+            if event[1] in keymap.keys():
+                client.send_input(keymap[event[1]])
             client.send_input(event[1])
 
         elif event[0] == "new-state":
             state = event[1]
             draw_state(stdscr, state)
+            refresh_lock.acquire()
             stdscr.refresh()
+            refresh_lock.release()
             # Print a 'you lose' message and exit
             if all_dead(state):
                 draw_end_msg(stdscr, "Eliminated by mines, you lose!")

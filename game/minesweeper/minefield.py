@@ -45,8 +45,14 @@ def cell_neighbors(mfield, x, y):
 
 class MineField(object):
     def __init__(self, width=12, height=12, mine_count=None):
-        self.width = width
-        self.height = height
+        if width is None:
+            self.width = 12
+        else:
+            self.width = width
+        if height is None:
+            self.height = 12
+        else:
+            self.height = height
         self.mine_count = mine_count
         self.board = [
             [Cell(w, h) for h in range(0, height)] for w in range(0, width)
