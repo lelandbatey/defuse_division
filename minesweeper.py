@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import argparse
 import curses
+import sys
+
+# Since cell probing is donre recursively, for large minefields with fiew
+# mines, the default recursion limit may be reached.
+sys.setrecursionlimit(5000)
 
 from game.termclient import termclient as tc
 
