@@ -132,7 +132,14 @@ def main(stdscr, args):
     curses_colors.colors_init()
     curses.curs_set(0)
 
-    # args = parse_cli_args()
+    if args.maxsize:
+        y, x = stdscr.getmaxyx()
+        cwidth = 3
+        # Calculate the maximum size of the minefield
+        width = (x - 3) // (cwidth + 1)
+        height = (y - 2) // 2
+        args.width = width
+        args.height = height
 
     eventq = queue.Queue()
 
@@ -148,7 +155,6 @@ def main(stdscr, args):
         except KeyboardInterrupt:
             break
         if event[0] == "user-input":
-            # print(event[1], key_name(event[1]))
             client.send_input(event[1])
 
         elif event[0] == "new-state":

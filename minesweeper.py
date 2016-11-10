@@ -22,8 +22,10 @@ def main():
         '--mines', type=int, default=None, help="number of mines on the board")
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--vimkeys', dest='vimkeys', action='store_true')
+    parser.add_argument('--maxsize', dest='maxsize', action='store_true')
     parser.set_defaults(space=True)
     parser.set_defaults(debug=False)
+    parser.set_defaults(maxsize=False)
     args = parser.parse_args()
     print(curses.wrapper(tc.main, args))
 
