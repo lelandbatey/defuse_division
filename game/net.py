@@ -11,15 +11,26 @@ def json_dump(indata):
      separators=(',', ': '))#, cls=date_handler)
 
 
-SEP = b'\x00\x00\x00\x01\x01\x01SEP'
+SEP = b'\x00'
 
 @concurrent
-def msg_recv(conn, sendfunc):
+def msg_recv(conn, sendfunc, closefunc):
+    '''
+    Function msg_recv reads null-delimited series of bytes from `conn`, which
+    is a socket. Each series of bytes is then de-serialized into a json object,
+    and `sendfunc` is called with that json object.
+    `closefunc` is called if/when the socket `conn` is closed.
+    '''
     buf = bytes()
     while True:
         try:
             data = conn.recv(8192)
-            # logging.debug("Len of data thus far {}".format(len(data)))
+
+            # No data means the connection is closed
+            if not data:
+                closefunc()
+                return
+
             inbuf = buf + data
             if SEP in inbuf:
                 parts = inbuf.split(SEP)
@@ -39,10 +50,20 @@ def msg_recv(conn, sendfunc):
             logging.exception(e)
 @concurrent
 def msg_send(conn, sourcefunc):
+    '''
+    Function msg_send continuously sends the result of `sourcefunc` on the
+    socket `conn`. This is done by calling `sourcefunc`, serializing what's
+    returned by sourcefunc into json, then calling `conn.sendall()` with the
+    json-serialized string encoded via utf-8 into bytes.
+    '''
     while True:
         msg = sourcefunc()
         msg = json_dump(msg)
         logging.debug('Sending message: {}'.format(msg[:150]+'...' if len(msg) > 150 else msg))
         msg = msg.encode('utf-8')
         msg += SEP
-        conn.sendall(msg)
+        try:
+            conn.sendall(msg)
+        except OSError:
+            # The socket's closed, return from this function
+            return

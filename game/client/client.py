@@ -50,7 +50,7 @@ class PlayerClient(game.Conveyor):
         self.stateq = queue.Queue()
         self.clientsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.clientsock.connect((self.host, self.port))
-        net.msg_recv(self.clientsock, self.stateq.put)
+        net.msg_recv(self.clientsock, self.stateq.put, lambda: None)
         conf = self.stateq.get()
         logging.debug("Conf: {}".format(conf))
         self.name = conf['name']

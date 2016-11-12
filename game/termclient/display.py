@@ -179,8 +179,8 @@ def assemble_glyphs(cell, player):
     ]
     corners = [func(x, y, cell, state)
                for func in (_upleft, _upright, _downright, _downleft)]
-    if state['selected'] == [0, 0]:
-        rv = borders + corners + [contents_glyph]
-    else:
-        rv = [contents_glyph]
+    # if state['selected'] == [0, 0]:
+    rv = borders + corners + [contents_glyph]
+    # else:
+        # rv = [contents_glyph]
     return rv

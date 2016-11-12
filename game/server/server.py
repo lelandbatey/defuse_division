@@ -40,7 +40,7 @@ class PlayerServer(game.Conveyor):
         self.living = True
         self.victory = False
 
-        net.msg_recv(self.conn, self.send_input)
+        net.msg_recv(self.conn, self.send_input, self._remove_self)
         net.msg_send(conn, self.get_state)
         # Send the player information as the very first thing
         self.conn.sendall(net.json_dump(self.json()).encode('utf-8')+net.SEP)
@@ -53,6 +53,16 @@ class PlayerServer(game.Conveyor):
 
     def get_state(self):
         return self.stateq.get()
+
+    def _remove_self(self):
+        '''
+        Removes ourself from the bout and close all associated sockets.
+        '''
+        self.conn.close()
+        # Causes the concurrently running msg_send to try to send 'die' over
+        # the closed socket, causing that thread to throw an exception and die.
+        self.stateq.put("die")
+        self.bout.remove_player(self.name)
 
     def json(self):
         return {

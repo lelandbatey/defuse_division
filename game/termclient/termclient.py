@@ -78,13 +78,16 @@ def draw_state(stdscr, state):
     startx, starty = 1, 1
 
     players = state['players']
-    for pname in players:
+    for idx, pname in enumerate(sorted(players.keys())):
         player = players[pname]
         field = player['minefield']
+        xoffset, _ = board_termsize(field['width'], 0)
+        xoffset = idx*xoffset
         for cell in field['cells']:
             glyphs = display.assemble_glyphs(cell, player)
             for g in glyphs:
-                stdscr.addstr(g.y + starty, g.x + startx, g.strng, g.attr)
+                stdscr.addstr(g.y + starty, g.x + startx + xoffset, g.strng,
+                              g.attr)
 
 
 def draw_end_msg(stdscr, msg):
@@ -145,7 +148,8 @@ def build_keymap(args):
 
 def extract_contents(stdscr):
     '''
-    Function extract_contents returns the contents of a curses window, without attributes.
+    Function extract_contents returns the contents of a curses window, without
+    attributes.
     '''
     contents = []
     height, _ = stdscr.getmaxyx()
@@ -153,6 +157,17 @@ def extract_contents(stdscr):
         contents.append(stdscr.instr(line, 0))
     contents = [row.decode('utf-8') for row in contents]
     return '\n'.join(contents)
+
+
+def board_termsize(board_width, board_height):
+    '''
+    Function board_termsize returns the height and width of a grid of
+    characters needed to display a board with the given input dimensions.
+    '''
+    cwidth = 3
+    termwidth = ((cwidth + 1) * board_width) + 1
+    termheight = (board_height * 2) + 1
+    return termwidth, termheight
 
 
 def main(stdscr, args):
@@ -184,10 +199,12 @@ def main(stdscr, args):
     # Prevent simultaneous screen refreshes using a lock, to keep from calling
     # 'getch' while the draw_state() method is also being called.
     refresh_lock = Lock()
+
     def getinput():
         refresh_lock.acquire()
         refresh_lock.release()
         return stdscr.getch()
+
     input_reader(eventq, getinput)
     state_change_reader(eventq, client.get_state)
 

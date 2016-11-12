@@ -1,3 +1,4 @@
+import logging
 import random
 import curses
 import queue
@@ -225,13 +226,22 @@ class Bout(object):
         '''
         if self.max_players <= len(self.players):
             return None
-        pname = "Player{}".format(len(self.players)+1)
+        pname = "Player{}-{}".format(len(self.players)+1, random.randint(0, 10000))
         width, height = self.minefield_size
         player = self.player_constructor(pname, self, mine_count=self.mine_count, height=height, width=width)
         self.players[pname] = player
-        print(self.players)
+        logging.info('Adding player: {}'.format(player))
         self._push_state()
         return player
+
+    def remove_player(self, playername):
+        '''
+        Method remove_player removes a player with the given name from this
+        Bout's collection of players. If no player exists with the given name,
+        does nothing.
+        '''
+        if playername in self.players:
+            del self.players[playername]
 
     def json(self):
         jplayers = {k: v.json() for k, v in self.players.items()}
