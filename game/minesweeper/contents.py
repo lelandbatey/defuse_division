@@ -1,6 +1,7 @@
 
 class Contents(object):
-    flag = " ⚑ "
+    #flag = " ⚑ "
+    flag = " f "
     mine = " 💣 "
     empty = "   "
     smile = " ☺ "

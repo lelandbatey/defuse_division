@@ -1,12 +1,16 @@
 
 from pprint import pprint, pformat
 from time import sleep
+import logging
 import socket
+import queue
 
 
 import zeroconf as zeroconfig
 
 from .. import concurrency
+from ..concurrency import concurrent
+from .. import game, net
 
 
 def local_address():
@@ -36,3 +40,24 @@ def zeroconf_info():
     sleep(5)
     concurrency.concurrent(lambda: zc.close())()
     return ret_info
+
+
+
+class PlayerClient(game.Conveyor):
+    def __init__(self, host, port):
+        self.host = host
+        self.port = int(port)
+        self.stateq = queue.Queue()
+        self.clientsock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.clientsock.connect((self.host, self.port))
+        net.msg_recv(self.clientsock, self.stateq.put)
+        conf = self.stateq.get()
+        logging.debug("Conf: {}".format(conf))
+        self.name = conf['name']
+
+    def send_input(self, inpt):
+        logging.debug('PlayerClient "{}" sending: {}'.format(self.name, net.json_dump(inpt)))
+        self.clientsock.sendall(net.json_dump(inpt).encode('utf-8')+net.SEP)
+
+    def get_state(self):
+        return self.stateq.get()

@@ -8,6 +8,7 @@ At this time, the design of termclient is based on a Golang-esque concurrent
 actor model.
 """
 from threading import Lock
+import logging
 import curses
 import queue
 
@@ -18,6 +19,7 @@ from . import curses_colors, display
 from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
 from ..game import Bout, Keys
+from ..client import client as netclient
 
 DEBUG = False
 
@@ -142,6 +144,9 @@ def build_keymap(args):
 
 
 def extract_contents(stdscr):
+    '''
+    Function extract_contents returns the contents of a curses window, without attributes.
+    '''
     contents = []
     height, _ = stdscr.getmaxyx()
     for line in range(height):
@@ -173,7 +178,8 @@ def main(stdscr, args):
         max_players=1,
         minefield_size=(args.width, args.height),
         mine_count=args.mines)
-    client = bout.add_player()
+    # client = bout.add_player()
+    client = netclient.PlayerClient('127.0.0.1', 44444)
 
     # Prevent simultaneous screen refreshes using a lock, to keep from calling
     # 'getch' while the draw_state() method is also being called.
@@ -194,7 +200,8 @@ def main(stdscr, args):
             # Map input onto game.Keys before sending it
             if event[1] in keymap.keys():
                 client.send_input(keymap[event[1]])
-            client.send_input(event[1])
+            else:
+                client.send_input(event[1])
 
         elif event[0] == "new-state":
             state = event[1]
