@@ -212,7 +212,7 @@ def main(stdscr, args):
         minefield_size=(args.width, args.height),
         mine_count=args.mines)
     # client = bout.add_player()
-    client = netclient.PlayerClient('127.0.0.1', 44444)
+    client = netclient.PlayerClient(args.host, args.port)
 
     # Prevent simultaneous screen refreshes using a lock, to keep from calling
     # 'getch' while the draw_state() method is also being called.
