@@ -249,6 +249,7 @@ def main(stdscr, args):
     state_change_reader(eventq, client.get_state)
 
     state = None
+    waitkeyframe = False
     while True:
         try:
             event = eventq.get()
@@ -258,14 +259,19 @@ def main(stdscr, args):
             # Map input onto game.Keys before sending it
             if event[1] in keymap.keys():
                 k = keymap[event[1]]
+                if waitkeyframe:
+                    continue
                 if k in game.DIRECTIONKEYS:
                     move_select(k, state['players'][client.name]['minefield'])
                     eventq.put(('new-state', state))
+                elif k in [game.Keys.PROBE, game.Keys.FLAG]:
+                    waitkeyframe = True
                 client.send_input(keymap[event[1]])
             else:
                 client.send_input(event[1])
 
         elif event[0] == "new-state":
+            waitkeyframe = False
             state = event[1]
             refresh_lock.acquire()
             draw_state(stdscr, state)
@@ -284,7 +290,7 @@ def main(stdscr, args):
             refresh_lock.release()
         elif event[0] == 'update-selected':
             pname, selected = event[1]
-            if pname == client.name:
+            if pname == client.name or waitkeyframe:
                 continue
             player = state['players'][pname]
             player['minefield']['selected'] = selected
