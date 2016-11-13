@@ -18,6 +18,7 @@ import sys
 from . import curses_colors, display
 from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
+from .. import game
 from ..game import Bout, Keys
 from ..client import client as netclient
 
@@ -184,6 +185,35 @@ def board_termsize(board_width, board_height):
     termheight = (board_height * 2) + 1
     return termwidth, termheight
 
+def move_select(direction, field):
+    """
+    Function _move_select changes the 'selected' field of a MineField depending
+    on the direction provided. 'direction' must be a curses.KEY_* instance,
+    either UP, DOWN, LEFT, or RIGHT. If moving the selected cell would move to
+    an out of bounds position, we do nothing.
+    """
+    startloc = field['selected']
+    delta = [0, 0]
+    if direction == game.Keys.UP:
+        delta = [0, -1]
+    elif direction == game.Keys.DOWN:
+        delta = [0, 1]
+    elif direction == game.Keys.RIGHT:
+        delta = [1, 0]
+    elif direction == game.Keys.LEFT:
+        delta = [-1, 0]
+
+    # Filter out-of-bounds deltas
+    x, y = startloc
+    nx, ny = [x + delta[0], y + delta[1]]
+    if nx < 0 or nx >= field['width']:
+        nx = x
+    if ny < 0 or ny >= field['height']:
+        ny = y
+
+    field['selected'] = [nx, ny]
+
+
 
 def main(stdscr, args):
     if not curses.has_colors():
@@ -227,6 +257,10 @@ def main(stdscr, args):
         if event[0] == "user-input":
             # Map input onto game.Keys before sending it
             if event[1] in keymap.keys():
+                k = keymap[event[1]]
+                if k in game.DIRECTIONKEYS:
+                    move_select(k, state['players'][client.name]['minefield'])
+                    eventq.put(('new-state', state))
                 client.send_input(keymap[event[1]])
             else:
                 client.send_input(event[1])

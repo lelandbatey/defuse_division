@@ -24,7 +24,7 @@ class Keys:
     PROBE = 'PROBE'
     FLAG = 'FLAG'
 
-_DIRECTIONKEYS = [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT]
+DIRECTIONKEYS = [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT]
 
 
 def _move_select(direction, field):
@@ -195,7 +195,7 @@ class Bout(object):
         field = player.mfield
         inpt = inpt_event['input']
 
-        if inpt in _DIRECTIONKEYS:
+        if inpt in DIRECTIONKEYS:
             _move_select(inpt, field)
             self._push_selected(player.name, field.selected)
             return
