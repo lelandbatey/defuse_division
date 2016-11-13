@@ -6,12 +6,6 @@ import time
 
 from game.server.server import Server
 import game
-# from game import game
-
-# bout = game.Bout(max_players=1)
-# client = bout.add_player()
-
-# pprint(bout.json())
 
 logformat='%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(message)s'
 logging.basicConfig(format=logformat, level=logging.INFO)
@@ -24,5 +18,4 @@ while True:
     if len(bout.players) >= bout.max_players:
         time.sleep(0.3)
 
-# time.sleep(10)
 

@@ -230,7 +230,9 @@ class Bout(object):
         width, height = self.minefield_size
         player = self.player_constructor(pname, self, mine_count=self.mine_count, height=height, width=width)
         self.players[pname] = player
-        logging.info('Adding player: {}'.format(player))
+        logging.info('Adding player: "{}" {}'.format(pname, player))
+        if len(self.players) >= self.max_players:
+            self.ready = True
         self._push_state()
         return player
 
@@ -240,9 +242,13 @@ class Bout(object):
         Bout's collection of players. If no player exists with the given name,
         does nothing.
         '''
+        logging.info('Removing player: "{}"'.format(playername))
         if playername in self.players:
             del self.players[playername]
+        if len(self.players) < self.max_players:
+            self.ready = False
+        self._push_state()
 
     def json(self):
         jplayers = {k: v.json() for k, v in self.players.items()}
-        return {"players": jplayers}
+        return {"players": jplayers, 'ready': self.ready}

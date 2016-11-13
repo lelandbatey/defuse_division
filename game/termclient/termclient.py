@@ -97,6 +97,24 @@ def draw_end_msg(stdscr, msg):
     msg = fmt.format(msg)
     stdscr.addstr(y, 0, msg)
 
+def draw_readymsg(stdscr, state):
+    player = sorted(state['players'].keys())[0]
+    field = state['players'][player]['minefield']
+    _, yoffset = board_termsize(0, field['height'])
+    ready = state['ready']
+    # Ready message is yellow on red if not ready, blue on green if we are
+    # ready
+    attr = display.get_colorpair('yellow-red')
+    if ready:
+        attr = display.get_colorpair('blue-green')
+
+    readymsg = "Good to go!" if ready else "Not ready yet : ("
+    stdscr.move(yoffset+1, 0)
+    stdscr.clrtobot()
+
+    stdscr.addstr(yoffset + 2, 0, readymsg, attr)
+    logging.info('State is "{}"'.format(readymsg))
+
 
 def all_dead(state):
     """
@@ -223,9 +241,6 @@ def main(stdscr, args):
         elif event[0] == "new-state":
             state = event[1]
             draw_state(stdscr, state)
-            refresh_lock.acquire()
-            stdscr.refresh()
-            refresh_lock.release()
             # Print a 'you lose' message and exit
             if all_dead(state):
                 draw_end_msg(stdscr, "Eliminated by mines, you lose!")
@@ -235,4 +250,9 @@ def main(stdscr, args):
             if victor:
                 draw_end_msg(stdscr, "{} wins!".format(victor))
                 break
+            # Display the ready state of the bout
+            draw_readymsg(stdscr, state)
+            refresh_lock.acquire()
+            stdscr.refresh()
+            refresh_lock.release()
     return extract_contents(stdscr)
