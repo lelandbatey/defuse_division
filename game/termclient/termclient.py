@@ -284,6 +284,8 @@ def main(stdscr, args):
             refresh_lock.release()
         elif event[0] == 'update-selected':
             pname, selected = event[1]
+            if pname == client.name:
+                continue
             player = state['players'][pname]
             player['minefield']['selected'] = selected
             eventq.put(('new-state', state))
