@@ -6,7 +6,10 @@ import socket
 import queue
 
 
-import zeroconf as zeroconfig
+try:
+    import zeroconf as zeroconfig
+except ImportError:
+    print("Zeroconf not installed, which is ok, just be aware that might change in the future.")
 
 from .. import concurrency
 from ..concurrency import concurrent

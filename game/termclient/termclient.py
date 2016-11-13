@@ -240,6 +240,7 @@ def main(stdscr, args):
 
         elif event[0] == "new-state":
             state = event[1]
+            refresh_lock.acquire()
             draw_state(stdscr, state)
             # Print a 'you lose' message and exit
             if all_dead(state):
@@ -252,7 +253,6 @@ def main(stdscr, args):
                 break
             # Display the ready state of the bout
             draw_readymsg(stdscr, state)
-            refresh_lock.acquire()
             stdscr.refresh()
             refresh_lock.release()
     return extract_contents(stdscr)
