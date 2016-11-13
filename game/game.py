@@ -197,6 +197,8 @@ class Bout(object):
 
         if inpt in _DIRECTIONKEYS:
             _move_select(inpt, field)
+            self._push_selected(player.name, field.selected)
+            return
 
         if inpt == Keys.PROBE:
             if not _probe_selected(field):
@@ -216,7 +218,15 @@ class Bout(object):
         stateq.
         '''
         for _, v in self.players.items():
-            v.stateq.put(self.json())
+            v.stateq.put(('new-state', self.json()))
+
+    def _push_selected(self, playername, selected):
+        '''
+        Method _push_selected pushes a state to all Players updating one
+        players selected position.
+        '''
+        for _, v in self.players.items():
+            v.stateq.put(('update-selected', (playername, selected)))
 
     def add_player(self):
         '''

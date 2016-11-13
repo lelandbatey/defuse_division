@@ -15,11 +15,9 @@ from game.server.server import Server
 import game
 
 logformat='%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s'
-logging.basicConfig(format=logformat, filename='client.log', level=logging.DEBUG)
 
 def main():
     # logging.basicConfig(format=logformat, filename='client.log', level=logging.DEBUG)
-    logging.debug('Launching minesweeper main')
     parser = argparse.ArgumentParser(
         description="Play a game of minesweeper. Use arrows to move, 'enter' or 'space' to probe, 'f' to flag, CTRL-C to exit."
     )
@@ -46,6 +44,13 @@ def main():
     parser.set_defaults(maxsize=False)
     parser.set_defaults(serveronly=False)
     args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(format=logformat, filename='client.log', level=logging.DEBUG)
+    else:
+        logging.basicConfig(format=logformat, filename='client.log', level=logging.INFO)
+    logging.debug('Launching minesweeper main')
+
 
     # Run a dedicated server
     if args.serveronly:

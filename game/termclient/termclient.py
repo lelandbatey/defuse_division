@@ -43,7 +43,7 @@ def state_change_reader(outqueue, getstate):
     """
     while True:
         out = getstate()
-        outqueue.put(('new-state', out))
+        outqueue.put(out)
 
 
 def color_attr():
@@ -52,7 +52,6 @@ def color_attr():
     def next_color():
         possible = sorted(curses_colors.CURSES_COLORPAIRS.keys())
         key = possible[idx[0]]
-        # print(possible)
         val = curses_colors.CURSES_COLORPAIRS[key]
         cp = curses.color_pair(val)
         idx[0] = (idx[0] + 1) % len(possible)
@@ -63,7 +62,6 @@ def color_attr():
 
 def key_name(ch):
     vals_to_names = {v: k for k, v in curses.__dict__.items() if "KEY" in k}
-    # print(vals_to_names)
     if ch in vals_to_names:
         return vals_to_names[ch]
     if ch < 127:
@@ -113,7 +111,6 @@ def draw_readymsg(stdscr, state):
     stdscr.clrtobot()
 
     stdscr.addstr(yoffset + 2, 0, readymsg, attr)
-    logging.info('State is "{}"'.format(readymsg))
 
 
 def all_dead(state):
@@ -207,11 +204,6 @@ def main(stdscr, args):
 
     eventq = queue.Queue()
 
-    bout = Bout(
-        max_players=1,
-        minefield_size=(args.width, args.height),
-        mine_count=args.mines)
-    # client = bout.add_player()
     client = netclient.PlayerClient(args.host, args.port)
 
     # Prevent simultaneous screen refreshes using a lock, to keep from calling
@@ -226,6 +218,7 @@ def main(stdscr, args):
     input_reader(eventq, getinput)
     state_change_reader(eventq, client.get_state)
 
+    state = None
     while True:
         try:
             event = eventq.get()
@@ -255,4 +248,9 @@ def main(stdscr, args):
             draw_readymsg(stdscr, state)
             stdscr.refresh()
             refresh_lock.release()
+        elif event[0] == 'update-selected':
+            pname, selected = event[1]
+            player = state['players'][pname]
+            player['minefield']['selected'] = selected
+            eventq.put(('new-state', state))
     return extract_contents(stdscr)

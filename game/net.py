@@ -65,11 +65,6 @@ def msg_send(conn, sourcefunc):
         except OSError:
             # The socket's closed, return from this function
             return
-        # msg = json_dump(msg)
-        # logging.debug('Sending message: {}'.format(msg[:150]+'...' if len(msg) > 150 else msg))
-        # msg = msg.encode('utf-8')
-        # msg += SEP
-            # conn.sendall(msg)
 
 def send(conn, obj):
     msg = json_dump(obj)
