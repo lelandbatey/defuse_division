@@ -1,6 +1,7 @@
 
 import logging
 import socket
+import gzip
 import json
 
 from .concurrency import concurrent
@@ -11,7 +12,7 @@ def json_dump(indata):
      separators=(',', ': '))#, cls=date_handler)
 
 
-SEP = b'\x00'
+SEP = b'\x00\x01\x00'
 
 @concurrent
 def msg_recv(conn, sendfunc, closefunc):
@@ -40,7 +41,8 @@ def msg_recv(conn, sendfunc, closefunc):
                     tosend.append(p)
                 buf = parts[-1]
                 for msg in tosend:
-                    m = msg.decode('utf-8')
+                    m = gzip.decompress(msg)
+                    m = m.decode('utf-8')
                     logging.debug("Msg: {}".format(m[:150]+'...' if len(m) > 150 else m))
                     obj = json.loads(m)
                     sendfunc(obj)
@@ -58,12 +60,21 @@ def msg_send(conn, sourcefunc):
     '''
     while True:
         msg = sourcefunc()
-        msg = json_dump(msg)
-        logging.debug('Sending message: {}'.format(msg[:150]+'...' if len(msg) > 150 else msg))
-        msg = msg.encode('utf-8')
-        msg += SEP
         try:
-            conn.sendall(msg)
+            send(conn, msg)
         except OSError:
             # The socket's closed, return from this function
             return
+        # msg = json_dump(msg)
+        # logging.debug('Sending message: {}'.format(msg[:150]+'...' if len(msg) > 150 else msg))
+        # msg = msg.encode('utf-8')
+        # msg += SEP
+            # conn.sendall(msg)
+
+def send(conn, obj):
+    msg = json_dump(obj)
+    msg = msg.encode('utf-8')
+    msg = gzip.compress(msg)
+    msg += SEP
+    conn.sendall(msg)
+

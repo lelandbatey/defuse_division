@@ -57,7 +57,8 @@ class PlayerClient(game.Conveyor):
 
     def send_input(self, inpt):
         logging.debug('PlayerClient "{}" sending: {}'.format(self.name, net.json_dump(inpt)))
-        self.clientsock.sendall(net.json_dump(inpt).encode('utf-8')+net.SEP)
+        net.send(self.clientsock, inpt)
+        # self.clientsock.sendall(net.json_dump(inpt).encode('utf-8')+net.SEP)
 
     def get_state(self):
         return self.stateq.get()

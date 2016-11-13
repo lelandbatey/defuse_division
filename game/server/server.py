@@ -43,7 +43,8 @@ class PlayerServer(game.Conveyor):
         net.msg_recv(self.conn, self.send_input, self._remove_self)
         net.msg_send(conn, self.get_state)
         # Send the player information as the very first thing
-        self.conn.sendall(net.json_dump(self.json()).encode('utf-8')+net.SEP)
+        # self.conn.sendall(net.json_dump(self.json()).encode('utf-8')+net.SEP)
+        net.send(self.conn, self.json())
 
     def send_input(self, inpt):
         # Just pass the input to the parent bout, but with info saying that
