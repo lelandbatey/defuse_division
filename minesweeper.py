@@ -17,7 +17,6 @@ import game
 logformat='%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s'
 
 def main():
-    # logging.basicConfig(format=logformat, filename='client.log', level=logging.DEBUG)
     parser = argparse.ArgumentParser(
         description="Play a game of minesweeper. Use arrows to move, 'enter' or 'space' to probe, 'f' to flag, CTRL-C to exit."
     )
@@ -36,8 +35,10 @@ def main():
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--vimkeys', dest='vimkeys', action='store_true')
     parser.add_argument('--maxsize', dest='maxsize', action='store_true')
-    parser.add_argument('--host', default="127.0.0.1", help='remote host to connect to')
-    parser.add_argument('--port', default=44444, type=int, help='port of remote host')
+    # Defaults for host and port are set elsewhere, allowing us to determine if
+    # the user provided them or not.
+    parser.add_argument('--host', help='remote host to connect to')
+    parser.add_argument('--port', help='port of remote host')
     parser.add_argument('--serveronly', dest='serveronly', action='store_true', help='if true, run as dedicated server')
     parser.set_defaults(space=True)
     parser.set_defaults(debug=False)
@@ -62,6 +63,7 @@ def main():
         console.setLevel(logging.INFO)
         console.setFormatter(logging.Formatter(logformat))
         logging.root.addHandler(console)
+
         srv = Server(args.host, args.port)
         bout = game.game.Bout(max_players=2, player_constructor=srv.create_player)
 
