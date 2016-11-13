@@ -4,8 +4,6 @@ import socket
 import queue
 import json
 
-import zeroconf
-
 from .. import game, net
 from ..concurrency import concurrent
 from ..minesweeper.minefield import MineField
