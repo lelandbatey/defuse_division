@@ -42,6 +42,7 @@ def colors_init():
         >>> green_black_attr = curses_color.CURSES_COLORPAIRS['black-green']
         >>> stdscr.addstr(0, 0, "test", curses.color_pair(green_black_attr))
     """
+    if len(CURSES_COLORPAIRS): return
     assert curses.has_colors(
     ), "Curses wasn't configured to support colors. Call curses.start_color()"
     start_number = 120
@@ -53,6 +54,14 @@ def colors_init():
             pair_name = "{}-{}".format(fg, bg)
             CURSES_COLORPAIRS[pair_name] = pair_num
 
+
+def get_colorpair(pair_name):
+    '''
+    Returns the color attribute for the given foreground-background attribute,
+    ready for use in a call to addstr.
+    '''
+    val = CURSES_COLORPAIRS[pair_name]
+    return curses.color_pair(val)
 
 def _test(stdscr):
     import time

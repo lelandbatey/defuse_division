@@ -20,6 +20,14 @@ def local_address():
 
 
 class PlayerServer(game.Conveyor):
+    '''
+    PlayerServer implements a game.Conveyor object, allowing this object to act
+    like a 'Player' object, as far as a Bout is concerned. Each remote player
+    in a Bout is allocated a PlayerServer which keeps track of that players
+    minefied, the various states of the player (whether the player's alive,
+    whether they're victorious, etc), and the socket connection to the
+    remote player.
+    '''
     def __init__(self,
                  conn,
                  addr,

@@ -16,7 +16,6 @@ import time
 import sys
 
 from . import curses_colors, display
-from ..minesweeper.minefield import MineField
 from ..concurrency import concurrent
 from .. import game
 from ..game import Bout, Keys
@@ -215,7 +214,7 @@ def move_select(direction, field):
 
 
 
-def main(stdscr, args):
+def main(stdscr, client, args):
     if not curses.has_colors():
         curses.start_color()
     curses_colors.colors_init()
@@ -223,18 +222,25 @@ def main(stdscr, args):
 
     keymap = build_keymap(args)
 
-    if args.maxsize:
-        y, x = stdscr.getmaxyx()
-        cwidth = 3
-        # Calculate the maximum size of the minefield
-        width = (x - 3) // (cwidth + 1)
-        height = (y - 2) // 2
-        args.width = width
-        args.height = height
+    # if args.maxsize:
+        # y, x = stdscr.getmaxyx()
+        # cwidth = 3
+        # # Calculate the maximum size of the minefield
+        # width = (x - 3) // (cwidth + 1)
+        # height = (y - 2) // 2
+        # args.width = width
+        # args.height = height
 
     eventq = queue.Queue()
 
-    client = netclient.PlayerClient(args.host, args.port)
+    # Quick, sketchy defaults
+    # port = 44444
+    # host = '127.0.0.1'
+    # if args.port:
+        # port = args.port
+    # if args.host:
+        # host = args.host
+    # client = netclient.PlayerClient(host, port)
 
     # Prevent simultaneous screen refreshes using a lock, to keep from calling
     # 'getch' while the draw_state() method is also being called.

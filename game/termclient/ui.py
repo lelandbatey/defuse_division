@@ -8,6 +8,39 @@ import curses
 
 from . import curses_colors as colors
 
+
+def xycenter(scr, text):
+    '''
+    Given a curses window and a string, return the x, y coordinates to pass to
+    scr.addstr() for the provided text to be drawn in the horizontal and
+    vertical center of the window.
+    '''
+    y, x = scr.getmaxyx()
+    nx = (x // 2) - (len(text) // 2)
+    ny = (y // 2) - (len(text.split('\n')) // 2)
+    return nx, ny
+
+def interspace(btn_h, btn_count, scr_h):
+    '''
+    Given the height of a button, the number of buttons to be displayed, and
+    the height of the curses window the buttons will be displayed within,
+    returns the number of lines to be given between each button for maximum
+    vertical spacing.
+    '''
+    return (scr_h - (btn_h * btn_count)) // (btn_count - 1)
+
+
+def demo(bh, bc, sh):
+    btn = '\n'.join(['XXXX'] * bh)
+    isp = interspace(bh, bc, sh)
+    cnct = ['----\n'] * isp
+    disp = ('\n' + ''.join(cnct)).join([btn] * bc)
+    while len(disp.split('\n')) < sh:
+        disp += '\n----'
+    assert (len(disp.split('\n')) == sh)
+    return disp
+
+
 class TermUI(object):
     '''
     Abstract class TermUI describes the functionality of any object which may
@@ -68,6 +101,45 @@ class Textbox(TermBox):
     '''
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.keypos = 0
+
+    def get_contents(self):
+        '''
+        Returns the contents of this textbox.
+        '''
+        return self.textinpt.instr(0, 0).decode('utf-8')
+
+    def getkey(self):
+        k = self.textinpt.getkey()
+        if len(k) == 1 and not k.isspace():
+            if self.keypos < self.width-1:
+                self.textinpt.addstr(0, self.keypos, k)
+                self.keypos += 1
+        elif k == 'KEY_BACKSPACE':
+            if self.keypos > 0:
+                self.textinpt.addstr(0, self.keypos-1, ' ')
+                self.keypos -= 1
+        self.textinpt.move(0, self.keypos)
+        return k
+
+    def select(self):
+        '''
+        Not only selects this textbox, but turns on the cursor and moves it to
+        the correct possition within this textbox.
+        '''
+        self.textinpt.bkgd(' ', colors.get_colorpair(self.default_color))
+        curses.curs_set(1)
+        self.textinpt.move(0, self.keypos)
+        self.refresh()
+
+    def deselect(self):
+        '''
+        Deselects this Textbox and turns off cursor visiblity.
+        '''
+        self.textinpt.bkgd(' ', colors.get_colorpair(self.default_color))
+        curses.curs_set(0)
+        self.refresh()
+
 
 class UIList(object):
     '''

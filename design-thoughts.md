@@ -81,4 +81,20 @@ User Stories
 4. As a player, when I choose "host and play" under "Multiplayer", I am dropped into a waiting screen till another player chooses to join my game.
 5. As a player, when I select "Multiplayer" and another player is already waiting at "host and play" on the same network as me, I will see their host in the list of games I may choose to join.
 
+### Playing on a dedicated server:
+
+The default state for a minesweeper server is to create a new bout. The default
+state for a bout is to wait for players to connect. When a player connects, the
+bout checks if the number of players currently registered is the correct
+number, and if it is, then the bout moves into the 'playing' state.
+
+In the playing state, actions are sent from each player to the server. During
+the processing of each action, the server evaluates whether that action results
+in a play-terminating game state. If a play-terminating game state is reached,
+the server categorizes each player as victorious or defeated and sends this
+message to each player. After sending the message indicating a play-terminating
+state and its outcomes, the bout is ended, players are disconnected, and the
+server creates a new bout and enters the default state.
+
+
 

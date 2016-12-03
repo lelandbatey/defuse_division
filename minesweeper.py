@@ -12,7 +12,9 @@ sys.setrecursionlimit(5000)
 
 from game.termclient import termclient as tc
 from game.server.server import Server
-import game
+import game.game as game
+import game.termclient.mainmenu as mainmenu
+import game.termclient.instance_setup as instance_setup
 
 logformat='%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s'
 
@@ -64,8 +66,8 @@ def main():
         console.setFormatter(logging.Formatter(logformat))
         logging.root.addHandler(console)
 
-        srv = Server(args.host, args.port)
-        bout = game.game.Bout(max_players=2, player_constructor=srv.create_player)
+        srv = Server(args.host, int(args.port))
+        bout = game.Bout(max_players=2, minefield_size=(args.width, args.height), player_constructor=srv.create_player)
 
         try:
             print("Running server on interface '{}' port '{}'".format(args.host, args.port))
@@ -78,7 +80,16 @@ def main():
             return
 
     # Run our terminal client
-    print(curses.wrapper(tc.main, args))
+    print(curses.wrapper(dotheui, args))
+
+def dotheui(stdscr, args):
+    '''
+    Here we springboard into the various bits of user interface.
+    '''
+    uiopts = mainmenu.mainmenu(stdscr)
+    client = instance_setup.create_client(args, uiopts)
+    return tc.main(stdscr, client, args)
+
 
 if __name__ == '__main__':
     main()
