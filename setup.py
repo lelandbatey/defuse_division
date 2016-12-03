@@ -49,13 +49,13 @@ setup(
     description='Terminal based multiplayer (and singleplayer) minesweeper',
     long_description=__doc__,
     packages=find_packages(),
-    install_requires=['curses'],
+    include_package_data=True,
     classifiers=[
         'Topic :: Games/Entertainment',
         'Topic :: Games/Entertainment :: Puzzle Games',
         'Programming Language :: Python :: 3',
     ],
-    console_scripts={
+    entry_points={
         'console_scripts': [
             'defusedivision=game.entrypoint:main'
             ]
