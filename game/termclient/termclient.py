@@ -222,28 +222,7 @@ def main(stdscr, client, args):
 
     keymap = build_keymap(args)
 
-    # if args.maxsize:
-        # y, x = stdscr.getmaxyx()
-        # cwidth = 3
-        # # Calculate the maximum size of the minefield
-        # width = (x - 3) // (cwidth + 1)
-        # height = (y - 2) // 2
-        # args.width = width
-        # args.height = height
-
     eventq = queue.Queue()
-
-    # Quick, sketchy defaults
-    # port = 44444
-    # host = '127.0.0.1'
-    # if args.port:
-        # port = args.port
-    # if args.host:
-        # host = args.host
-    # client = netclient.PlayerClient(host, port)
-
-    # Prevent simultaneous screen refreshes using a lock, to keep from calling
-    # 'getch' while the draw_state() method is also being called.
     refresh_lock = Lock()
 
     def getinput():

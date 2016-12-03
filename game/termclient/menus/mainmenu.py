@@ -6,7 +6,8 @@ return value of the mainmenu function is the selection made by the player.
 
 import curses
 
-from . import ui, curses_colors as colors, multiplayer_menu
+from .. import ui, curses_colors as colors
+from . import multiplayer
 TITLE_TEXT = """▗▄▄         ▄▄                       .--_    
 ▐▛▀█       ▐▛▀                      /    `.!,
 ▐▌ ▐▌ ▟█▙ ▐███ ▐▌ ▐▌▗▟██▖ ▟█▙    ,-┘ └-.  -*-
@@ -40,48 +41,55 @@ def createCenterBtn(stdscr, y, contents):
 
 
 def mainmenu(stdscr):
-    curses.start_color()
+    if not curses.has_colors():
+        curses.start_color()
     colors.colors_init()
     curses.curs_set(0)
-
-    # Draw the title text at the top of the screen. Assumes single line TITLE_TEXT.
-    title_height = len(TITLE_TEXT.split('\n'))
-    ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT.split('\n')[0])
-    ttly = 1
-    for lno, line in enumerate(TITLE_TEXT.split('\n')):
-        stdscr.addstr(ttly+lno, ttlx, line)
-    stdscr.refresh()
-
-    # Draw the buttons. Assumes single line button text.
-    button_height = 4
-    ttl_offset = ttly + title_height + 2
-    screen_height, _ = stdscr.getmaxyx()
-    screen_height = screen_height - ttl_offset
-    spacing = ui.interspace(button_height, len(OPTIONS), screen_height)
-
-    buttons = ui.UIList()
-    for idx, opt in enumerate(OPTIONS):
-        offset = ttl_offset + (spacing * idx) + (button_height * idx)
-        btn = createCenterBtn(stdscr, offset, opt)
-        buttons.children.append(btn)
-    buttons.get_current().select()
-
-    # Wait for user selection
-    rv = {'mode':'', 'connection':dict()}
     while True:
-        cur = buttons.get_current()
-        key = cur.getkey()
-        if key == 'KEY_BTAB' or key == 'KEY_UP':
-            buttons.select_prior()
-        elif key == '\t' or key == 'KEY_DOWN':
-            buttons.select_next()
-        elif key == '\n':
-            rv['mode'] = cur.label
-            break
-    # TODO cleanup here
-    if rv['mode'] == 'Multiplayer':
-        stdscr.clear()
-        stdscr.touchwin()
+        # Draw the title text at the top of the screen. Assumes single line TITLE_TEXT.
+        title_height = len(TITLE_TEXT.split('\n'))
+        ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT.split('\n')[0])
+        ttly = 0
+        for lno, line in enumerate(TITLE_TEXT.split('\n')):
+            stdscr.addstr(ttly+lno, ttlx, line)
         stdscr.refresh()
-        rv['connection'] = multiplayer_menu.multiplayer_menu(stdscr)
-    return rv
+
+        # Draw the buttons. Assumes single line button text.
+        button_height = 3
+        ttl_offset = ttly + title_height + 1
+        screen_height, _ = stdscr.getmaxyx()
+        screen_height = screen_height - ttl_offset
+        spacing = ui.interspace(button_height, len(OPTIONS), screen_height)
+
+        buttons = ui.UIList()
+        for idx, opt in enumerate(OPTIONS):
+            offset = ttl_offset + (spacing * idx) + (button_height * idx)
+            btn = createCenterBtn(stdscr, offset, opt)
+            buttons.children.append(btn)
+        buttons.get_current().select()
+
+        # Wait for user selection
+        rv = {'mode':'', 'connection':dict()}
+        while True:
+            cur = buttons.get_current()
+            key = cur.getkey()
+            if key == 'KEY_BTAB' or key == 'KEY_UP':
+                buttons.select_prior()
+            elif key == '\t' or key == 'KEY_DOWN':
+                buttons.select_next()
+            elif key == '\n':
+                rv['mode'] = cur.label
+                break
+        # TODO cleanup here
+        if rv['mode'] == 'Multiplayer':
+            stdscr.clear()
+            stdscr.touchwin()
+            stdscr.refresh()
+            conn_opts = multiplayer.multiplayer_menu(stdscr)
+            if conn_opts == 'BACK':
+                stdscr.clear()
+                stdscr.touchwin()
+                stdscr.refresh()
+                continue
+            rv['connection'] = conn_opts
+        return rv

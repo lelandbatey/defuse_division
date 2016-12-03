@@ -5,13 +5,16 @@ about a connecting to a multiplayer minesweeper server.
 
 import curses
 
-from . import ui, curses_colors as colors
+from .. import ui, curses_colors as colors
 
 def multiplayer_menu(stdscr):
     if not curses.has_colors():
         curses.start_color()
     colors.colors_init()
     curses.curs_set(0)
+
+    bottom, _ = stdscr.getmaxyx()
+    stdscr.addstr(bottom-1, 0, "Ctrl+Backspace to return to main menu")
 
     x, y = ui.xycenter(stdscr, " ")
     hostwidth = max(20, x//2)
@@ -41,5 +44,8 @@ def multiplayer_menu(stdscr):
             rv['hostname'] = hostname_txtbx.get_contents().strip()
             rv['port'] = port_txtbx.get_contents().strip()
             break
+        elif key == '\x08':
+            # Return to the prior menu
+            return 'BACK'
     return rv
 

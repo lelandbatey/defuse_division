@@ -13,7 +13,7 @@ sys.setrecursionlimit(5000)
 from game.termclient import termclient as tc
 from game.server.server import Server
 import game.game as game
-import game.termclient.mainmenu as mainmenu
+import game.termclient.menus.mainmenu as mainmenu
 import game.termclient.instance_setup as instance_setup
 
 logformat='%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s'
@@ -97,4 +97,3 @@ def dotheui(stdscr, args):
 
 if __name__ == '__main__':
     main()
-    # print(curses.wrapper(tc.main))
