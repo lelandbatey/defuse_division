@@ -86,8 +86,12 @@ def dotheui(stdscr, args):
     '''
     Here we springboard into the various bits of user interface.
     '''
-    uiopts = mainmenu.mainmenu(stdscr)
+    try:
+        uiopts = mainmenu.mainmenu(stdscr)
+    except KeyboardInterrupt:
+        return ""
     client = instance_setup.create_client(args, uiopts)
+    stdscr.clear()
     return tc.main(stdscr, client, args)
 
 

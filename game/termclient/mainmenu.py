@@ -7,8 +7,21 @@ return value of the mainmenu function is the selection made by the player.
 import curses
 
 from . import ui, curses_colors as colors, multiplayer_menu
+TITLE_TEXT = """▗▄▄         ▄▄                       .--_    
+▐▛▀█       ▐▛▀                      /    `.!,
+▐▌ ▐▌ ▟█▙ ▐███ ▐▌ ▐▌▗▟██▖ ▟█▙    ,-┘ └-.  -*-
+▐▌ ▐▌▐▙▄▟▌ ▐▌  ▐▌ ▐▌▐▙▄▖▘▐▙▄▟▌  / ▟▖    \ '|`
+▐▌ ▐▌▐▛▀▀▘ ▐▌  ▐▌ ▐▌ ▀▀█▖▐▛▀▀▘  │ ▜     |    
+▐▙▄█ ▝█▄▄▌ ▐▌  ▐▙▄█▌▐▄▄▟▌▝█▄▄▌  \       /    
+▝▀▀   ▝▀▀  ▝▘   ▀▀▝▘ ▀▀▀  ▝▀▀    `-...-'     
+▗▄▄    █         █         █                  
+▐▛▀█   ▀         ▀         ▀                  
+▐▌ ▐▌ ██  ▐▙ ▟▌ ██  ▗▟██▖ ██   ▟█▙ ▐▙██▖      
+▐▌ ▐▌  █   █ █   █  ▐▙▄▖▘  █  ▐▛ ▜▌▐▛ ▐▌      
+▐▌ ▐▌  █   ▜▄▛   █   ▀▀█▖  █  ▐▌ ▐▌▐▌ ▐▌      
+▐▙▄█ ▗▄█▄▖ ▐█▌ ▗▄█▄▖▐▄▄▟▌▗▄█▄▖▝█▄█▘▐▌ ▐▌      
+▝▀▀  ▝▀▀▀▘  ▀  ▝▀▀▀▘ ▀▀▀ ▝▀▀▀▘ ▝▀▘ ▝▘ ▝▘      """
 
-TITLE_TEXT = "Defuse Division"
 OPTIONS = ["Single player", "Multiplayer", "Host and play"]
 
 
@@ -33,14 +46,15 @@ def mainmenu(stdscr):
 
     # Draw the title text at the top of the screen. Assumes single line TITLE_TEXT.
     title_height = len(TITLE_TEXT.split('\n'))
-    ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT)
+    ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT.split('\n')[0])
     ttly = 1
-    stdscr.addstr(ttly, ttlx, TITLE_TEXT)
+    for lno, line in enumerate(TITLE_TEXT.split('\n')):
+        stdscr.addstr(ttly+lno, ttlx, line)
     stdscr.refresh()
 
     # Draw the buttons. Assumes single line button text.
     button_height = 4
-    ttl_offset = ttly + title_height + 1
+    ttl_offset = ttly + title_height + 2
     screen_height, _ = stdscr.getmaxyx()
     screen_height = screen_height - ttl_offset
     spacing = ui.interspace(button_height, len(OPTIONS), screen_height)
