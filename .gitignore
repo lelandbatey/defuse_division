@@ -1,0 +1,6 @@
+
+*.egg-info
+*scrap*
+build/
+dist/
+venv/
