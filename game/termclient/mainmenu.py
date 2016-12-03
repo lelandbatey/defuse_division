@@ -71,9 +71,9 @@ def mainmenu(stdscr):
     while True:
         cur = buttons.get_current()
         key = cur.getkey()
-        if key == 'KEY_BTAB':
+        if key == 'KEY_BTAB' or key == 'KEY_UP':
             buttons.select_prior()
-        elif key == '\t':
+        elif key == '\t' or key == 'KEY_DOWN':
             buttons.select_next()
         elif key == '\n':
             rv['mode'] = cur.label

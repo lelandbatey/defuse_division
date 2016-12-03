@@ -33,9 +33,9 @@ def multiplayer_menu(stdscr):
     while True:
         cur = buttons.get_current()
         key = cur.getkey()
-        if key == 'KEY_BTAB':
+        if key == 'KEY_BTAB' or key == 'KEY_LEFT':
             buttons.select_prior()
-        elif key == '\t':
+        elif key == '\t' or key == 'KEY_RIGHT':
             buttons.select_next()
         elif key == '\n':
             rv['hostname'] = hostname_txtbx.get_contents().strip()
