@@ -2,6 +2,11 @@
 Module mainmenu provides a function which draws a main menu to stdscr and
 allows a user to select one of several buttons displayed on the screen. The
 return value of the mainmenu function is the selection made by the player.
+
+Notes:
+    The large ascii-art text saying 'Defuse Division' was generated using the
+    software known as 'toilet' using the figlet font 'smmono12.tlf'.
+    The bomb ascii art is of my own design.
 '''
 
 import curses
