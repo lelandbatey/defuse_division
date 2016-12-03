@@ -5,7 +5,9 @@ return value of the mainmenu function is the selection made by the player.
 '''
 
 import curses
+import time
 
+from ...concurrency import concurrent
 from .. import ui, curses_colors as colors
 from . import multiplayer
 TITLE_TEXT = """▗▄▄         ▄▄                       .--_    
@@ -23,6 +25,22 @@ TITLE_TEXT = """▗▄▄         ▄▄                       .--_
 ▐▙▄█ ▗▄█▄▖ ▐█▌ ▗▄█▄▖▐▄▄▟▌▗▄█▄▖▝█▄█▘▐▌ ▐▌      
 ▝▀▀  ▝▀▀▀▘  ▀  ▝▀▀▀▘ ▀▀▀ ▝▀▀▀▘ ▝▀▘ ▝▘ ▝▘      """
 
+BOMB1 = """     .--_
+    /    `.!,
+ ,-┘ └-.  -*-
+/ ▟▖    \ '|`
+│ ▜     | 
+\       /
+ `-...-'"""
+BOMB2 = """     .--_    
+    /    `\:/
+ ,-┘ └-.  ,x.
+/ ▟▖    \ /;\ 
+│ ▜     |    
+\       /    
+ `-...-'     """
+UPDATE_BOMBSPRITE = True
+
 OPTIONS = ["Single player", "Multiplayer", "Host and play"]
 
 
@@ -39,8 +57,31 @@ def createCenterBtn(stdscr, y, contents):
     rv.textinpt.refresh()
     return rv
 
+def drawbomb(stdscr, idx):
+    bombs = [BOMB1, BOMB2]
+    idx = (idx+1) % len(bombs)
+    b = bombs[idx]
+    ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT.split('\n')[0])
+    for lno, line in enumerate(b.split('\n')):
+        stdscr.addstr(lno, ttlx+32, line)
+    stdscr.refresh()
+    return idx
+
+@concurrent
+def redraw_bomb(stdscr):
+    global UPDATE_BOMBSPRITE
+    idx = 0
+    while True:
+        time.sleep(0.25)
+        if UPDATE_BOMBSPRITE:
+            curses.curs_set(0)
+            idx = drawbomb(stdscr, idx)
+        else:
+            break
+
 
 def mainmenu(stdscr):
+    global UPDATE_BOMBSPRITE
     if not curses.has_colors():
         curses.start_color()
     colors.colors_init()
@@ -53,6 +94,8 @@ def mainmenu(stdscr):
         for lno, line in enumerate(TITLE_TEXT.split('\n')):
             stdscr.addstr(ttly+lno, ttlx, line)
         stdscr.refresh()
+        UPDATE_BOMBSPRITE = True
+        redraw_bomb(stdscr)
 
         # Draw the buttons. Assumes single line button text.
         button_height = 3
@@ -79,12 +122,14 @@ def mainmenu(stdscr):
                 buttons.select_next()
             elif key == '\n':
                 rv['mode'] = cur.label
+                UPDATE_BOMBSPRITE = False
                 break
         # TODO cleanup here
         if rv['mode'] == 'Multiplayer':
             stdscr.clear()
             stdscr.touchwin()
             stdscr.refresh()
+            UPDATE_BOMBSPRITE = False
             conn_opts = multiplayer.multiplayer_menu(stdscr)
             if conn_opts == 'BACK':
                 stdscr.clear()
