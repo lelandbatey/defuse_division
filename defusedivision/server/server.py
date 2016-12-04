@@ -1,5 +1,5 @@
-
 import logging
+import atexit
 import socket
 import queue
 import json
@@ -9,14 +9,55 @@ from ..concurrency import concurrent
 from ..minesweeper.minefield import MineField
 
 
-def local_address():
+def local_address(fallback):
     """Returns the local address of this computer."""
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(("8.8.8.8", 53))
-    interface = s.getsockname()[0]
-    s.close()
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 53))
+        interface = s.getsockname()[0]
+        s.close()
+    except OSError:
+        interface = fallback
+        logging.info(
+            'Cannot connect to network determine interface, using fallback "{}"'.
+            format(fallback))
+
     return interface
 
+
+@concurrent
+def localnet_register(host, port):
+    '''
+    Runs a never-exiting thread which only registers a local network service
+    via Zeroconf and then responds to info requests.
+    '''
+    try:
+        from zeroconf import ServiceInfo, Zeroconf
+        from time import sleep
+    except ImportError as e:
+        logging.error(
+            'Zeroconf not installed, cannot register this server on the local '
+            'network. Other players may still connect, but they must be told '
+            'what your hostname and port are (hostname: {}, port: {})'.format(
+                host, port))
+        return
+
+    advertised_interface = local_address('127.0.0.1')
+
+    info = ServiceInfo(
+        "_defusedivision._tcp.local.",
+        "{}._defusedivision._tcp.local.".format(host.replace('.', '-')),
+        address=socket.inet_aton(advertised_interface),
+        port=int(port),
+        weight=0,
+        priority=0,
+        properties=b"")
+
+    zc = Zeroconf()
+    zc.register_service(info)
+    atexit.register(lambda: zc.close())
+    while True:
+        sleep(0.1)
 
 
 class PlayerServer(game.Conveyor):
@@ -28,6 +69,7 @@ class PlayerServer(game.Conveyor):
     whether they're victorious, etc), and the socket connection to the
     remote player.
     '''
+
     def __init__(self,
                  conn,
                  addr,
@@ -91,6 +133,8 @@ class Server(object):
 
         self.srvsock.bind((host, port))
         self.srvsock.listen(5)
+        if not host.startswith("127."):
+            localnet_register(host, port)
 
     def create_player(self,
                       name,

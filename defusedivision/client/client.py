@@ -1,15 +1,15 @@
-
 from pprint import pprint, pformat
 from time import sleep
 import logging
 import socket
 import queue
 
-
 try:
     import zeroconf as zeroconfig
 except ImportError:
-    print("Zeroconf not installed, which is ok, just be aware that might change in the future.")
+    print(
+        "Zeroconf not installed, which is ok, just be aware that might change in the future."
+    )
 
 from .. import concurrency
 from ..concurrency import concurrent
@@ -31,19 +31,21 @@ def zeroconf_info():
     zeroconf.ServiceBrowser and spending 0.25 seconds querying the network for
     other services."""
     ret_info = []
+
     def on_change(zeroconf, service_type, name, state_change):
         if state_change is zeroconfig.ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
-                address = "{} {}:{}".format(info.server, socket.inet_ntoa(info.address), info.port)
+                address = "{}".format(socket.inet_ntoa(info.address))
                 props = str(info.properties.items())
-                ret_info.append((address, props))
+                ret_info.append((str(info.server), address, info.port, props))
+
     zc = zeroconfig.Zeroconf()
-    browser = zeroconfig.ServiceBrowser(zc, "_http._tcp.local.", handlers=[on_change])
-    sleep(5)
+    browser = zeroconfig.ServiceBrowser(
+        zc, "_defusedivision._tcp.local.", handlers=[on_change])
+    sleep(1)
     concurrency.concurrent(lambda: zc.close())()
     return ret_info
-
 
 
 class PlayerClient(game.Conveyor):
@@ -59,7 +61,8 @@ class PlayerClient(game.Conveyor):
         self.name = conf['name']
 
     def send_input(self, inpt):
-        logging.debug('PlayerClient "{}" sending: {}'.format(self.name, net.json_dump(inpt)))
+        logging.debug('PlayerClient "{}" sending: {}'.format(
+            self.name, net.json_dump(inpt)))
         net.send(self.clientsock, inpt)
         # self.clientsock.sendall(net.json_dump(inpt).encode('utf-8')+net.SEP)
 

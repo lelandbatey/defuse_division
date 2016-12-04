@@ -49,9 +49,9 @@ def main():
     args = parser.parse_args()
 
     if args.debug:
-        logging.basicConfig(format=logformat, filename='client.log', level=logging.DEBUG)
+        logging.basicConfig(format=logformat, filename='/tmp/defusedivision.log', level=logging.DEBUG)
     else:
-        logging.basicConfig(format=logformat, filename='client.log', level=logging.INFO)
+        logging.basicConfig(format=logformat, filename='/tmp/defusedivision.log', level=logging.INFO)
     logging.debug('Launching minesweeper main')
 
 
@@ -65,8 +65,14 @@ def main():
         console.setLevel(logging.INFO)
         console.setFormatter(logging.Formatter(logformat))
         logging.root.addHandler(console)
+        host = '0.0.0.0'
+        port = '44444'
+        if args.host:
+            host = args.host
+        if args.port:
+            port = args.port
 
-        srv = Server(args.host, int(args.port))
+        srv = Server(host, int(port))
         bout = game.Bout(max_players=2, minefield_size=(args.width, args.height), player_constructor=srv.create_player)
 
         try:
