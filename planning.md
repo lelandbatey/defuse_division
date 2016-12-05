@@ -58,3 +58,22 @@ project with 5 days to spare.
     - TURN IT IN!
 
 
+# BUG plans:
+
+Currently, there's an unsolvable bug that only rarely occurs where the screen
+may be corrupted because multiple threads call the `refresh()` method of stdscr
+at the same time. I've mitigated it using thread locks, but it's still possible
+just less likely. It can be reproduced by holding down an arrow key on the main
+menu, which should cause screen corruption within 60 seconds. "Normally"
+pressing arrow keys will pretty much never cause corruption.
+
+This happens because while one thread is calling 'refresh', another may call
+'getch', and `getch` calls `refresh` before waiting for input. However, `pads`,
+which are almost exactly like windows, don't cause `refresh` when `getch` is
+called. Thus, I may be able to 'fake' stdscr by having a stdscr-sized pad that
+acts like stdscr.
+
+Another alternative may be to separately read from stdin (manually, outside of
+curses) and wait for new input, then use locks to call `getch` from curses.
+Whether this works or not I don't know.
+

@@ -5,6 +5,7 @@ Buttons that you want, then place them in a list of buttons.
 '''
 
 import curses
+import logging
 
 from . import curses_colors as colors
 
@@ -19,6 +20,7 @@ def xycenter(scr, text):
     nx = (x // 2) - (len(text) // 2)
     ny = (y // 2) - (len(text.split('\n')) // 2)
     return nx, ny
+
 
 def interspace(btn_h, btn_count, scr_h):
     '''
@@ -46,21 +48,27 @@ class TermUI(object):
     Abstract class TermUI describes the functionality of any object which may
     be used as a user interface object.
     '''
+
     def select(self):
         raise NotImplementedError
+
     def deselect(self):
         raise NotImplementedError
+
     def refresh(self):
         raise NotImplementedError
+
     def getch(self):
         return NotImplementedError
+
 
 class TermBox(TermUI):
     '''
     Class TermBox creates a nice 'box' out of curses windows. To be used as a
     base for other interface objects.
     '''
-    def __init__(self, stdscr, label, x, y, width, height):
+
+    def __init__(self, stdscr, label="", x=0, y=0, width=10, height=1):
         self.default_color = 'white-black'
         self.stdscr = stdscr
         self.label = label
@@ -99,6 +107,7 @@ class Textbox(TermBox):
     '''
     Class Textbox provides a TermUI object which can be used to enter text.
     '''
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.keypos = 0
@@ -112,12 +121,12 @@ class Textbox(TermBox):
     def getkey(self):
         k = self.textinpt.getkey()
         if len(k) == 1 and not k.isspace():
-            if self.keypos < self.width-1:
+            if self.keypos < self.width - 1:
                 self.textinpt.addstr(0, self.keypos, k)
                 self.keypos += 1
         elif k == 'KEY_BACKSPACE':
             if self.keypos > 0:
-                self.textinpt.addstr(0, self.keypos-1, ' ')
+                self.textinpt.addstr(0, self.keypos - 1, ' ')
                 self.keypos -= 1
         self.textinpt.move(0, self.keypos)
         return k
@@ -141,10 +150,90 @@ class Textbox(TermBox):
         self.refresh()
 
 
+class ListBox(TermBox):
+    '''
+    Class ListBox provides a selectable list of items. It 'takes control' of
+    keyboard input in that get_key won't return arrow keys or tab literals,
+    instead using them to manipulate it's own display. 'Leaving' a ListBox will
+    have to rely on other keys.
+    '''
+
+    def __init__(self, stdscr, label="", x=0, y=0, width=10, height=1):
+        self.highlight_color = 'white-blue'
+        self.current = None
+        self.items = list()
+        self.is_selected = False
+        super().__init__(stdscr, label=label, x=x, y=y, width=width, height=height)
+
+    def update_items(self, newitems):
+        if self.current is None:
+            self.current = 0
+        self.items = sorted(newitems)
+        self.refresh()
+
+    def get_selection(self):
+        if self.current is None:
+            return None
+        return self.items[self.current]
+
+    def select_next(self):
+        # If there's nothing to select
+        if self.current is None:
+            return
+        self.current = (self.current + 1) % len(self.items)
+
+    def select_prior(self):
+        if self.current is None:
+            return
+        self.current = (self.current - 1) % len(self.items)
+
+    def getkey(self):
+        key = self.textinpt.getkey()
+        if key == 'KEY_BTAB' or key == 'KEY_UP':
+            self.select_prior()
+            self.refresh()
+        elif key == '\t' or key == 'KEY_DOWN':
+            self.select_next()
+            self.refresh()
+        else:
+            return key
+
+    def select(self):
+        self.is_selected = True
+        self.refresh()
+
+    def deselect(self):
+        self.is_selected = False
+        self.refresh()
+
+    def refresh(self):
+        prior, (cursr_y, cursr_x) = curses.curs_set(0), curses.getsyx()
+        for idx, item in enumerate(self.items):
+            fmt = '{{: <{}}}'.format(self.width-1)
+            s = fmt.format(str(item))[:self.width-1]
+            # s = str(item)[:self.width-1] if len(str(item)) > self.width-1 else str(item)
+            color = colors.get_colorpair(self.default_color)
+            if self.current == idx:
+                if self.is_selected:
+                    color = colors.get_colorpair('black-white')
+                else:
+                    color = colors.get_colorpair(self.highlight_color)
+            self.textinpt.addstr(idx, 0, s, color)
+        self.borderbox.border()
+        self.borderbox.refresh()
+        self.textinpt.refresh()
+
+        curses.curs_set(prior)
+        curses.setsyx(cursr_y, cursr_x)
+        curses.doupdate()
+
+
+
 class UIList(object):
     '''
-    Buttonlist is a collection of children which are TermUI objects.
+    UIList is a collection of children which are TermUI objects.
     '''
+
     def __init__(self):
         self.children = []
         self.current = 0
@@ -178,4 +267,3 @@ class UIList(object):
     def refresh(self):
         for btn in self.children:
             btn.refresh()
-

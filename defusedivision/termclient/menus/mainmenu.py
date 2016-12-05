@@ -9,6 +9,7 @@ Notes:
     The bomb ascii art is of my own design.
 '''
 
+from threading import Lock
 import curses
 import time
 
@@ -62,25 +63,29 @@ def createCenterBtn(stdscr, y, contents):
     rv.textinpt.refresh()
     return rv
 
+
 def drawbomb(stdscr, idx):
     bombs = [BOMB1, BOMB2]
-    idx = (idx+1) % len(bombs)
+    idx = (idx + 1) % len(bombs)
     b = bombs[idx]
     ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT.split('\n')[0])
     for lno, line in enumerate(b.split('\n')):
-        stdscr.addstr(lno, ttlx+32, line)
+        stdscr.addstr(lno, ttlx + 32, line)
     stdscr.refresh()
     return idx
 
+
 @concurrent
-def redraw_bomb(stdscr):
+def redraw_bomb(stdscr, refresh_lock):
     global UPDATE_BOMBSPRITE
     idx = 0
     while True:
         time.sleep(0.25)
         if UPDATE_BOMBSPRITE:
+            refresh_lock.acquire()
             curses.curs_set(0)
             idx = drawbomb(stdscr, idx)
+            refresh_lock.release()
         else:
             break
 
@@ -91,16 +96,17 @@ def mainmenu(stdscr):
         curses.start_color()
     colors.colors_init()
     curses.curs_set(0)
+    refresh_lock = Lock()
     while True:
         # Draw the title text at the top of the screen. Assumes single line TITLE_TEXT.
         title_height = len(TITLE_TEXT.split('\n'))
         ttlx, _ = ui.xycenter(stdscr, TITLE_TEXT.split('\n')[0])
         ttly = 0
         for lno, line in enumerate(TITLE_TEXT.split('\n')):
-            stdscr.addstr(ttly+lno, ttlx, line)
+            stdscr.addstr(ttly + lno, ttlx, line)
         stdscr.refresh()
         UPDATE_BOMBSPRITE = True
-        redraw_bomb(stdscr)
+        redraw_bomb(stdscr, refresh_lock)
 
         # Draw the buttons. Assumes single line button text.
         button_height = 3
@@ -117,9 +123,11 @@ def mainmenu(stdscr):
         buttons.get_current().select()
 
         # Wait for user selection
-        rv = {'mode':'', 'connection':dict()}
+        rv = {'mode': '', 'connection': dict()}
         while True:
             cur = buttons.get_current()
+            refresh_lock.acquire()
+            refresh_lock.release()
             key = cur.getkey()
             if key == 'KEY_BTAB' or key == 'KEY_UP':
                 buttons.select_prior()
@@ -131,6 +139,8 @@ def mainmenu(stdscr):
                 break
         # TODO cleanup here
         if rv['mode'] == 'Multiplayer':
+            refresh_lock.acquire()
+            refresh_lock.release()
             stdscr.clear()
             stdscr.touchwin()
             stdscr.refresh()

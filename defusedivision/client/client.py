@@ -24,6 +24,16 @@ def local_address():
     s.close()
     return interface
 
+class ServerInfo(object):
+    def __init__(self, servername, address, port, properties):
+        self.servername = servername
+        self.address = address
+        self.port = port
+        self.properties = properties
+    def __str__(self):
+        return "{}:{}".format(self.address, self.port)
+    def __lt__(self, other):
+        return str(self) < str(other)
 
 def zeroconf_info():
     """zeroconf_info returns a list of tuples of the information about other
@@ -38,7 +48,8 @@ def zeroconf_info():
             if info:
                 address = "{}".format(socket.inet_ntoa(info.address))
                 props = str(info.properties.items())
-                ret_info.append((str(info.server), address, info.port, props))
+                item = ServerInfo(str(info.server), address, info.port, props)
+                ret_info.append(item)
 
     zc = zeroconfig.Zeroconf()
     browser = zeroconfig.ServiceBrowser(
