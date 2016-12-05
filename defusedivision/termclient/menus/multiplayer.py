@@ -16,11 +16,22 @@ UPDATE_LOCALSERVERS = True
 @concurrent
 def update_locallist(listb, refresh_lock):
     global UPDATE_LOCALSERVERS
+    cached = dict()
+    durable_duration = 5
     while UPDATE_LOCALSERVERS:
+        toremove = []
+        for item in cached:
+            if cached[item] > durable_duration:
+                toremove.append(item)
+            cached[item] += 1
+        for item in toremove:
+            del cached[item]
         info = zeroconf_info()
+        for item in info:
+            cached[item] = 0
         if not UPDATE_LOCALSERVERS: break
         refresh_lock.acquire()
-        listb.update_items(info)
+        listb.update_items(cached.keys())
         refresh_lock.release()
 
 

@@ -275,8 +275,8 @@ def main(stdscr, client, args):
             refresh_lock.release()
         elif event[0] == 'update-selected':
             pname, selected = event[1]
-            if pname == client.name or waitkeyframe:
-                continue
+            # if pname == client.name or waitkeyframe:
+                # continue
             player = state['players'][pname]
             player['minefield']['selected'] = selected
             eventq.put(('new-state', state))

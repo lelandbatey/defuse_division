@@ -24,16 +24,31 @@ def local_address():
     s.close()
     return interface
 
+
 class ServerInfo(object):
     def __init__(self, servername, address, port, properties):
         self.servername = servername
         self.address = address
         self.port = port
         self.properties = properties
+
     def __str__(self):
         return "{}:{}".format(self.address, self.port)
+
     def __lt__(self, other):
         return str(self) < str(other)
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __repr__(self):
+        return "{}('{}', '{}', '{}', '{}')".format(
+            self.__class__.__name__, self.servername, self.address, self.port,
+            self.properties)
+
+    def __hash__(self):
+        return hash(repr(self))
+
 
 def zeroconf_info():
     """zeroconf_info returns a list of tuples of the information about other

@@ -46,7 +46,8 @@ def localnet_register(host, port):
 
     info = ServiceInfo(
         "_defusedivision._tcp.local.",
-        "{}._defusedivision._tcp.local.".format(host.replace('.', '-')),
+        "{}{}._defusedivision._tcp.local.".format(
+            host.replace('.', '-'), advertised_interface.replace('.', '-')),
         address=socket.inet_aton(advertised_interface),
         port=int(port),
         weight=0,
