@@ -40,7 +40,7 @@ def main():
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--vimkeys', dest='vimkeys', action='store_true')
     parser.add_argument('--maxsize', dest='maxsize', action='store_true')
-    parser.add_argument('--player-name', default=None, help='Name of your player')
+    parser.add_argument('--playername', default=None, help='Name of your player')
     # Defaults for host and port are set elsewhere, allowing us to determine if
     # the user provided them or not.
     parser.add_argument('--host', help='remote host to connect to')
@@ -77,7 +77,7 @@ def main():
             port = args.port
 
         srv = Server(host, int(port))
-        bout = game.Bout(max_players=2, minefield_size=(args.width, args.height), player_constructor=srv.create_player)
+        bout = game.Bout(max_players=3, minefield_size=(args.width, args.height), player_constructor=srv.create_player)
 
         try:
             print("Running server on interface '{}' port '{}'".format(host, port))

@@ -55,7 +55,7 @@ class MineField(object):
             self.height = height
         self.mine_count = mine_count
         self.board = [
-            [Cell(w, h) for h in range(0, height)] for w in range(0, width)
+            [Cell(w, h) for h in range(0, self.height)] for w in range(0, self.width)
         ]
         self._populate_mines()
         self._set_neighbors()

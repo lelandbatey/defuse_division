@@ -215,6 +215,8 @@ class Bout(object):
                 while newname in self.players:
                     newname = newname + str(random.randint(0, 100))
                 oldname = player.name
+                logging.info('Changing player name from: "{}" to "{}"'.format(
+                    oldname, newname))
                 player.name = newname
                 self.players[newname] = player
                 del self.players[oldname]

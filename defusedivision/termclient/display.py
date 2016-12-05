@@ -2,6 +2,7 @@
 Module display concerns itself with the displaying of the game board.
 """
 
+import logging
 import curses
 
 from ..minesweeper.contents import Contents
@@ -141,6 +142,7 @@ def build_contents(cell, player):
 
     # If our cell's selected, mark it red
     if [cell['x'], cell['y']] == player['minefield']['selected']:
+        # logging.error("Selected x,y: {} {}".format(cell['x'], cell['y']))
         rv.attr = get_colorpair('white-red')
 
     if not cell['probed']:

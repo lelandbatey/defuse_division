@@ -111,6 +111,8 @@ def create_client(stdscr, args, uiopts):
         concurrency.concurrent(lambda: bout.add_player())()
         client = netclient.PlayerClient(host, port)
         # Auto-make a new minefield of the size we want
+        if args.playername:
+            client.send_input({'change-name': args.playername})
         client.send_input({
             'new-minefield': {
                 'height': height,
@@ -134,6 +136,8 @@ def create_client(stdscr, args, uiopts):
             stdscr.addstr(0, 0, err)
             stdscr.getch()
 
+        if args.playername:
+            client.send_input({'change-name': args.playername})
         client.send_input({
             'new-minefield': {
                 'height': height,

@@ -69,23 +69,45 @@ def key_name(ch):
     return "!NOTFOUND!"
 
 
-def draw_state(stdscr, state):
+def board_termsize(board_width, board_height):
+    '''
+    Function board_termsize returns the height and width of a grid of
+    characters needed to display a board with the given input dimensions.
+    '''
+    cwidth = 3
+    termwidth = ((cwidth + 1) * board_width) + 1
+    termheight = (board_height * 2) + 1
+    return termwidth, termheight
+
+
+def draw_state(stdscr, state, me):
     """
     draw_state draws the state of a MineField onto a curses window.
     """
     startx, starty = 1, 1
+    stdscr.erase()
 
+    xoffset = 0
     players = state['players']
     for idx, pname in enumerate(sorted(players.keys())):
         player = players[pname]
         field = player['minefield']
-        xoffset, _ = board_termsize(field['width'], 0)
-        xoffset = idx*xoffset
+
+        width, height = board_termsize(field['width'], field['height'])
+        namey = starty + height
+        disp_name = "{{: ^{}}}".format(width).format(pname)[:width]
+        if pname == me:
+            attr = curses_colors.get_colorpair('green-black')
+        else:
+            attr = curses.A_NORMAL
+
         for cell in field['cells']:
             glyphs = display.assemble_glyphs(cell, player)
             for g in glyphs:
                 stdscr.addstr(g.y + starty, g.x + startx + xoffset, g.strng,
                               g.attr)
+        stdscr.addstr(namey, startx + xoffset, disp_name, attr)
+        xoffset += width
 
 
 def draw_end_msg(stdscr, msg):
@@ -94,6 +116,7 @@ def draw_end_msg(stdscr, msg):
     fmt = "{{:^{}}}".format(width)
     msg = fmt.format(msg)
     stdscr.addstr(y, 0, msg)
+
 
 def draw_readymsg(stdscr, state):
     player = sorted(state['players'].keys())[0]
@@ -107,8 +130,8 @@ def draw_readymsg(stdscr, state):
         attr = display.get_colorpair('blue-green')
 
     readymsg = "Good to go!" if ready else "Not ready yet : ("
-    stdscr.move(yoffset+1, 0)
-    stdscr.clrtobot()
+    stdscr.move(yoffset + 1, 0)
+    # stdscr.clrtobot()
 
     stdscr.addstr(yoffset + 2, 0, readymsg, attr)
 
@@ -174,16 +197,6 @@ def extract_contents(stdscr):
     return '\n'.join(contents)
 
 
-def board_termsize(board_width, board_height):
-    '''
-    Function board_termsize returns the height and width of a grid of
-    characters needed to display a board with the given input dimensions.
-    '''
-    cwidth = 3
-    termwidth = ((cwidth + 1) * board_width) + 1
-    termheight = (board_height * 2) + 1
-    return termwidth, termheight
-
 def move_select(direction, field):
     """
     Function _move_select changes the 'selected' field of a MineField depending
@@ -213,6 +226,26 @@ def move_select(direction, field):
     field['selected'] = [nx, ny]
 
 
+class FakeStdscr(object):
+    def __init__(self, stdscr):
+        self.stdscr = stdscr
+        self.par_height, self.par_width = stdscr.getmaxyx()
+        self.pad = curses.newpad(self.par_height + 200, self.par_width + 200)
+        self.pad.keypad(1)
+
+    def refresh(self):
+        # self.stdscr.refresh()
+        self.pad.refresh(0, 0, 0, 0, self.par_height - 1, self.par_width - 1)
+
+    def getmaxyx(self):
+        return self.stdscr.getmaxyx()
+
+    def __getattr__(self, attr):
+        if hasattr(self.pad, attr):
+            return getattr(self.pad, attr)
+        else:
+            raise AttributeError(attr)
+
 
 def main(stdscr, client, args):
     if not curses.has_colors():
@@ -220,14 +253,15 @@ def main(stdscr, client, args):
     curses_colors.colors_init()
     curses.curs_set(0)
 
+    actual_stdscr = stdscr
+    stdscr = FakeStdscr(stdscr)
+
     keymap = build_keymap(args)
 
     eventq = queue.Queue()
     refresh_lock = Lock()
 
     def getinput():
-        refresh_lock.acquire()
-        refresh_lock.release()
         return stdscr.getch()
 
     input_reader(eventq, getinput)
@@ -259,7 +293,7 @@ def main(stdscr, client, args):
             waitkeyframe = False
             state = event[1]
             refresh_lock.acquire()
-            draw_state(stdscr, state)
+            draw_state(stdscr, state, client.name)
             # Print a 'you lose' message and exit
             if all_dead(state):
                 draw_end_msg(stdscr, "Eliminated by mines, you lose!")
@@ -270,13 +304,11 @@ def main(stdscr, client, args):
                 draw_end_msg(stdscr, "{} wins!".format(victor))
                 break
             # Display the ready state of the bout
-            draw_readymsg(stdscr, state)
+            # draw_readymsg(stdscr, state)
             stdscr.refresh()
             refresh_lock.release()
         elif event[0] == 'update-selected':
             pname, selected = event[1]
-            # if pname == client.name or waitkeyframe:
-                # continue
             player = state['players'][pname]
             player['minefield']['selected'] = selected
             eventq.put(('new-state', state))
