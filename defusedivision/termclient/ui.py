@@ -95,10 +95,12 @@ class TermBox(TermUI):
         self.textinpt.addstr(*args)
 
     def select(self):
+        self.borderbox.bkgd(' ', curses.A_BOLD)
         self.textinpt.bkgd(' ', colors.get_colorpair('black-white'))
         self.refresh()
 
     def deselect(self):
+        self.borderbox.bkgd(' ', curses.A_NORMAL)
         self.textinpt.bkgd(' ', colors.get_colorpair(self.default_color))
         self.refresh()
 
@@ -136,6 +138,7 @@ class Textbox(TermBox):
         Not only selects this textbox, but turns on the cursor and moves it to
         the correct possition within this textbox.
         '''
+        self.borderbox.bkgd(' ', curses.A_BOLD)
         self.textinpt.bkgd(' ', colors.get_colorpair(self.default_color))
         curses.curs_set(1)
         self.textinpt.move(0, self.keypos)
@@ -145,6 +148,7 @@ class Textbox(TermBox):
         '''
         Deselects this Textbox and turns off cursor visiblity.
         '''
+        self.borderbox.bkgd(' ', curses.A_NORMAL)
         self.textinpt.bkgd(' ', colors.get_colorpair(self.default_color))
         curses.curs_set(0)
         self.refresh()
@@ -166,9 +170,10 @@ class ListBox(TermBox):
         super().__init__(stdscr, label=label, x=x, y=y, width=width, height=height)
 
     def update_items(self, newitems):
-        if self.current is None:
-            self.current = 0
-        self.items = sorted(newitems)
+        self.items = list()
+        for item in newitems:
+            self.current = 0 if not self.current else self.current
+            self.items.append(item)
         self.refresh()
 
     def get_selection(self):
@@ -219,6 +224,10 @@ class ListBox(TermBox):
                 else:
                     color = colors.get_colorpair(self.highlight_color)
             self.textinpt.addstr(idx, 0, s, color)
+        if self.is_selected:
+            self.borderbox.bkgd(' ', curses.A_BOLD)
+        else:
+            self.borderbox.bkgd(' ', curses.A_DIM)
         self.borderbox.border()
         self.borderbox.refresh()
         self.textinpt.refresh()

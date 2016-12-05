@@ -11,10 +11,13 @@ class Conveyor(object):
     """
     Abstract class Conveyor describes the basic contract for communicating about games of Minesweeper.
     """
+
     def get_state(self):
         raise NotImplementedError
+
     def send_input(self, inpt):
         raise NotImplementedError
+
 
 class Keys:
     UP = 'UP'
@@ -23,6 +26,7 @@ class Keys:
     RIGHT = 'RIGHT'
     PROBE = 'PROBE'
     FLAG = 'FLAG'
+
 
 DIRECTIONKEYS = [Keys.UP, Keys.DOWN, Keys.LEFT, Keys.RIGHT]
 
@@ -55,6 +59,7 @@ def _move_select(direction, field):
 
     field.selected = [nx, ny]
 
+
 def _create_foothold(field):
     """
     Function _create_foothold will remove mines from around the currently
@@ -86,6 +91,7 @@ def _create_foothold(field):
                 possible_mine.contents = Contents.mine
                 moved_count -= 1
 
+
 def _first_probe(field):
     """
     Function _first_probe checks if this is the first probe of any cell in this
@@ -96,6 +102,7 @@ def _first_probe(field):
         if cell.probed:
             return False
     return True
+
 
 def _probe_selected(field):
     """
@@ -147,9 +154,7 @@ class Player(Conveyor):
         self.bout = bout
         self.stateq = queue.Queue()
         self.mfield = MineField(
-            height=height,
-            width=width,
-            mine_count=mine_count)
+            height=height, width=width, mine_count=mine_count)
         self.living = True
         self.victory = False
 
@@ -180,7 +185,11 @@ class Bout(object):
     Player which gets it's input from anywhere.
     """
 
-    def __init__(self, max_players=2, minefield_size=(12, 12), mine_count=None, player_constructor=None):
+    def __init__(self,
+                 max_players=2,
+                 minefield_size=(12, 12),
+                 mine_count=None,
+                 player_constructor=None):
         self.max_players = max_players
         self.minefield_size = minefield_size
         self.mine_count = mine_count
@@ -191,9 +200,32 @@ class Bout(object):
         self.player_constructor = player_constructor
 
     def send_input(self, inpt_event):
+        '''
+        Method send_input is the final stop for an inpt_event, as those events
+        are used here by the Bout to modify the state of the game.
+        '''
         player = self.players[inpt_event['player']]
         field = player.mfield
         inpt = inpt_event['input']
+
+        if isinstance(inpt, dict):
+            # Change the name of a player
+            if 'change-name' in inpt:
+                newname = inpt['change-name']
+                while newname in self.players:
+                    newname = newname + str(random.randint(0, 100))
+                oldname = player.name
+                player.name = newname
+                self.players[newname] = player
+                del self.players[oldname]
+            if 'new-minefield' in inpt:
+                info = inpt['new-minefield']
+                height = info['height']
+                width = info['width']
+                mine_count = info['mine_count']
+                new_mfield = MineField(
+                    height=height, width=width, mine_count=mine_count)
+                player.mfield = new_mfield
 
         if inpt in DIRECTIONKEYS:
             _move_select(inpt, field)
@@ -236,9 +268,15 @@ class Bout(object):
         '''
         if self.max_players <= len(self.players):
             return None
-        pname = "Player{}-{}".format(len(self.players)+1, random.randint(0, 10000))
+        pname = "Player{}-{}".format(
+            len(self.players) + 1, random.randint(0, 10000))
         width, height = self.minefield_size
-        player = self.player_constructor(pname, self, mine_count=self.mine_count, height=height, width=width)
+        player = self.player_constructor(
+            pname,
+            self,
+            mine_count=self.mine_count,
+            height=height,
+            width=width)
         self.players[pname] = player
         logging.info('Adding player: "{}" {}'.format(pname, player))
         if len(self.players) >= self.max_players:

@@ -1,9 +1,11 @@
 '''
 Module multiplayer_menu displays a curses menu allowing the user to input info
-about a connecting to a multiplayer minesweeper server.
+about connecting to a multiplayer minesweeper server, or select a server on the
+local network (if there are any).
 '''
 
 from threading import Lock
+import logging
 import curses
 
 from .. import ui, curses_colors as colors
@@ -30,9 +32,11 @@ def update_locallist(listb, refresh_lock):
         for item in info:
             cached[item] = 0
         if not UPDATE_LOCALSERVERS: break
+        logging.debug('Acquiring refresh lock for updating list of local servers.')
         refresh_lock.acquire()
         listb.update_items(cached.keys())
         refresh_lock.release()
+        logging.debug('Releasing refresh lock after updating locla server list')
 
 
 def multiplayer_menu(stdscr):
@@ -45,7 +49,7 @@ def multiplayer_menu(stdscr):
     refresh_lock = Lock()
 
     bottom, _ = stdscr.getmaxyx()
-    stdscr.addstr(bottom - 1, 0, "Ctrl+Backspace to return to main menu")
+    stdscr.addstr(bottom - 1, 0, "Press 'escape' to return to main menu")
 
     x, y = ui.xycenter(stdscr, " ")
     hostwidth = max(20, x // 2)
@@ -89,7 +93,8 @@ def multiplayer_menu(stdscr):
                 rv['hostname'] = hostname_txtbx.get_contents().strip()
                 rv['port'] = port_txtbx.get_contents().strip()
             break
-        elif key == '\x08':
+        # If Ctrl+Backspace or Escape
+        elif key in ['\x08', '\x1b']:
             # Return to the prior menu
             UPDATE_LOCALSERVERS = False
             return 'BACK'
