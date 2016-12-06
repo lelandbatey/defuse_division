@@ -96,10 +96,19 @@ def dotheui(stdscr, args):
     '''
     Here we springboard into the various bits of user interface.
     '''
-    try:
-        uiopts = mainmenu.mainmenu(stdscr)
-    except KeyboardInterrupt:
-        return ""
+    if args.host is None:
+        try:
+            uiopts = mainmenu.mainmenu(stdscr)
+        except KeyboardInterrupt:
+            return ""
+    else:
+        uiopts = {'mode': 'Multiplayer'}
+        uiopts['connection'] = dict()
+        uiopts['connection']['hostname'] = args.host
+        port = args.port
+        if port is None:
+            port = 44444
+        uiopts['connection']['port'] = port
     client = instance_setup.create_client(stdscr, args, uiopts)
     stdscr.clear()
     return tc.main(stdscr, client, args)
