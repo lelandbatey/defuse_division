@@ -89,7 +89,7 @@ class PlayerClient(game.Conveyor):
     def send_input(self, inpt):
         logging.debug('PlayerClient "{}" sending: {}'.format(
             self.name, net.json_dump(inpt)))
-        if 'change-name' in inpt:
+        if isinstance(inpt, dict) and 'change-name' in inpt:
             self.name = inpt['change-name']
         net.send(self.clientsock, inpt)
         # self.clientsock.sendall(net.json_dump(inpt).encode('utf-8')+net.SEP)

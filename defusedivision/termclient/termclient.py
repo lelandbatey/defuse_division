@@ -95,7 +95,8 @@ def draw_state(stdscr, state, me):
 
         width, height = board_termsize(field['width'], field['height'])
         namey = starty + height
-        disp_name = "{{: ^{}}}".format(width).format(pname)[:width]
+        middlefmt = "{{: ^{}}}"
+        disp_name = middlefmt.format(width).format(pname)[:width]
         if pname == me:
             attr = curses_colors.get_colorpair('green-black')
         else:
@@ -106,6 +107,12 @@ def draw_state(stdscr, state, me):
             for g in glyphs:
                 stdscr.addstr(g.y + starty, g.x + startx + xoffset, g.strng,
                               g.attr)
+        # If a user has died, draw a big 'you're dead' message in the middle of
+        # their board
+        if not state['players'][pname]['living']:
+            dead = middlefmt.format(width).format('WASTED')
+            h = height // 2
+            stdscr.addstr(h, startx+xoffset, dead, curses_colors.get_colorpair('yellow-red'))
         stdscr.addstr(namey, startx + xoffset, disp_name, attr)
         xoffset += width
 
@@ -190,10 +197,10 @@ def extract_contents(stdscr):
     attributes.
     '''
     contents = []
-    height, _ = stdscr.getmaxyx()
+    height, width = stdscr.getmaxyx()
     for line in range(height):
         contents.append(stdscr.instr(line, 0))
-    contents = [row.decode('utf-8') for row in contents]
+    contents = [row.decode('utf-8').rstrip() for row in contents]
     return '\n'.join(contents)
 
 
@@ -234,7 +241,9 @@ class FakeStdscr(object):
         self.pad.keypad(1)
 
     def refresh(self):
-        # self.stdscr.refresh()
+        # Reset the parent height on each refresh, to allow proper redrawing on
+        # terminal resize
+        self.par_height, self.par_width = self.stdscr.getmaxyx()
         self.pad.refresh(0, 0, 0, 0, self.par_height - 1, self.par_width - 1)
 
     def getmaxyx(self):
@@ -275,6 +284,13 @@ def main(stdscr, client, args):
         except KeyboardInterrupt:
             break
         if event[0] == "user-input":
+            # Handle terminal resizing during game by redrawing the window
+            if event[1] == curses.KEY_RESIZE:
+                eventq.put(('new-state', state))
+                continue
+            # Don't send input once we've lost
+            if not state['players'][client.name]['living']:
+                continue
             # Map input onto game.Keys before sending it
             if event[1] in keymap.keys():
                 k = keymap[event[1]]
@@ -286,6 +302,7 @@ def main(stdscr, client, args):
                 elif k in [game.Keys.PROBE, game.Keys.FLAG]:
                     waitkeyframe = True
                 client.send_input(keymap[event[1]])
+
             else:
                 client.send_input(event[1])
 
@@ -297,11 +314,15 @@ def main(stdscr, client, args):
             # Print a 'you lose' message and exit
             if all_dead(state):
                 draw_end_msg(stdscr, "Eliminated by mines, you lose!")
+                stdscr.refresh()
+                time.sleep(2)
                 break
             # Print a 'Winner' message and exit
             victor = victorious(state)
             if victor:
                 draw_end_msg(stdscr, "{} wins!".format(victor))
+                stdscr.refresh()
+                time.sleep(2)
                 break
             # Display the ready state of the bout
             # draw_readymsg(stdscr, state)

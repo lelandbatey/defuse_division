@@ -49,6 +49,7 @@ setup(
     description='Terminal based multiplayer (and singleplayer) minesweeper',
     long_description=__doc__,
     packages=find_packages(),
+    install_requires=['zeroconf', 'pygame'],
     include_package_data=True,
     classifiers=[
         'Topic :: Games/Entertainment',

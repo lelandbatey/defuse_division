@@ -97,4 +97,12 @@ state and its outcomes, the bout is ended, players are disconnected, and the
 server creates a new bout and enters the default state.
 
 
+Sound Sources
+-------------
+
+For my sounds, I plan to use the sounds on Freesound.org, specifically the same source of sounds that Notch used when creating Minecraft, this user: https://www.freesound.org/people/junggle/sounds/?page=27#sound
+
+Also, here's possible source for into music: http://opengameart.org/content/generic-8-bit-jrpg-soundtrack
+
+I'll have to remember to include attribution to all of these sounds, as they use the CC-Attribution license.
 

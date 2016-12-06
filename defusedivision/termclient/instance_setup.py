@@ -22,6 +22,7 @@ import time
 from .. import game, concurrency
 from ..server import server
 from ..client import client as netclient
+from ..minesweeper import contents
 
 
 def field_size(scr_w, scr_h, cellwidth=3):
@@ -65,6 +66,8 @@ def create_client(stdscr, args, uiopts):
     If uiopts['mode'] is 'Host and play', ... I haven't decided how I'll do
     that one yet.
     '''
+    # Change the contents of cells based on command line args
+
     height, width = args.height, args.width
     default_width, default_height = 16, 16
     screen_h, screen_w = stdscr.getmaxyx()
