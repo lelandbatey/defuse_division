@@ -64,6 +64,10 @@ def multiplayer_menu(stdscr):
     stdscr.refresh()
     hostname_txtbx = ui.Textbox(stdscr, 'hostname', x, y, hostwidth, 1)
     port_txtbx = ui.Textbox(stdscr, 'port', x + hostwidth + 3, y, portwidth, 1)
+    for ch in "44444":
+        port_txtbx.addstr(0, port_txtbx.keypos, ch)
+        port_txtbx.keypos += 1
+    port_txtbx.refresh()
 
 
     listb = ui.ListBox(stdscr, 'localservers', x, y + 5,

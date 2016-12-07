@@ -77,6 +77,7 @@ def create_client(stdscr, args, uiopts):
     # assume they know what their doing and we won't override it, which is why
     # we only use safe sizes if the height and width options are unset.
     max_width, max_height = field_size(screen_w, screen_h)
+    mine_count = None
     if height is None:
         # Take a little bit off, just to make sure
         max_height -= 1
@@ -92,6 +93,8 @@ def create_client(stdscr, args, uiopts):
             too_wide = True
         else:
             width = default_width
+    if args.mines:
+        mine_count = int(args.mines)
     if args.maxsize:
         width, height = max_width, max_height
 
@@ -120,7 +123,7 @@ def create_client(stdscr, args, uiopts):
             'new-minefield': {
                 'height': height,
                 'width': width,
-                'mine_count': None
+                'mine_count': mine_count
             }
         })
         client.get_state()
@@ -145,7 +148,7 @@ def create_client(stdscr, args, uiopts):
             'new-minefield': {
                 'height': height,
                 'width': width,
-                'mine_count': None
+                'mine_count': mine_count
             }
         })
         client.get_state()

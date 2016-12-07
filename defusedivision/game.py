@@ -131,13 +131,16 @@ def _flag_selected(field):
 
 
 def check_win(mfield):
+    flags = 0
     correct_flags = 0
     for h in range(mfield.height):
         for w in range(mfield.width):
             c = mfield.board[w][h]
             if c.contents == Contents.mine and c.flaged:
                 correct_flags += 1
-    if correct_flags == mfield.mine_count:
+            if c.flaged:
+                flags += 1
+    if correct_flags == mfield.mine_count and flags == correct_flags:
         return True
     return False
 
