@@ -11,6 +11,7 @@ import curses
 from .. import ui, curses_colors as colors
 from ...client.client import zeroconf_info
 from ...concurrency import concurrent
+from ...sound import sound
 
 UPDATE_LOCALSERVERS = True
 
@@ -84,6 +85,7 @@ def multiplayer_menu(stdscr):
         refresh_lock.acquire()
         refresh_lock.release()
         key = cur.getkey()
+        sound.SAMPLES.move_click.play()
         if key == 'KEY_BTAB' or key == 'KEY_LEFT':
             buttons.select_prior()
         elif key == '\t' or key == 'KEY_RIGHT':

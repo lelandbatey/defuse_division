@@ -14,6 +14,7 @@ import curses
 import time
 
 from ...concurrency import concurrent
+from ...sound import sound
 from .. import ui, curses_colors as colors
 from . import multiplayer
 TITLE_TEXT = """▗▄▄         ▄▄                       .--_    
@@ -123,11 +124,12 @@ def mainmenu(stdscr):
         buttons.get_current().select()
 
         # Wait for user selection
-        rv = {'mode': '', 'connection': dict()}
+        rv = {'mode': '', 'connection': {'hostname': None, 'port': None}}
         while True:
             cur = buttons.get_current()
             refresh_lock.acquire()
             refresh_lock.release()
+            sound.SAMPLES.move_click.play()
             key = cur.getkey()
             if key == 'KEY_BTAB' or key == 'KEY_UP':
                 buttons.select_prior()

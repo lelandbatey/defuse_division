@@ -15,6 +15,7 @@ os.environ.setdefault('ESCDELAY', '100')
 
 from .termclient import termclient as tc
 from .server.server import Server
+from .sound import sound
 from . import game
 from .termclient.menus import mainmenu
 from .termclient import instance_setup
@@ -40,6 +41,7 @@ def main():
     parser.add_argument('--debug', dest='debug', action='store_true')
     parser.add_argument('--vimkeys', dest='vimkeys', action='store_true')
     parser.add_argument('--maxsize', dest='maxsize', action='store_true')
+    parser.add_argument('--withsound', dest='withsound', action='store_true', help='if passed, attempts to use sound')
     parser.add_argument('--playername', default=None, help='Name of your player')
     # Defaults for host and port are set elsewhere, allowing us to determine if
     # the user provided them or not.
@@ -49,6 +51,7 @@ def main():
     parser.set_defaults(space=True)
     parser.set_defaults(debug=False)
     parser.set_defaults(maxsize=False)
+    parser.set_defaults(withsound=False)
     parser.set_defaults(serveronly=False)
     args = parser.parse_args()
 
@@ -58,6 +61,9 @@ def main():
         logging.basicConfig(format=logformat, filename='/tmp/defusedivision.log', level=logging.INFO)
     logging.debug('Launching minesweeper main')
 
+    # Attempt to enable sound, if it's available
+    if args.withsound:
+        sound.attempt_enable()
 
     # Run a dedicated server
     if args.serveronly:

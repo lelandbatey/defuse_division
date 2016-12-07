@@ -21,6 +21,7 @@ import time
 
 from .. import game, concurrency
 from ..server import server
+# from ..sound import sound
 from ..client import client as netclient
 from ..minesweeper import contents
 
@@ -66,7 +67,6 @@ def create_client(stdscr, args, uiopts):
     If uiopts['mode'] is 'Host and play', ... I haven't decided how I'll do
     that one yet.
     '''
-    # Change the contents of cells based on command line args
 
     height, width = args.height, args.width
     default_width, default_height = 16, 16
@@ -101,7 +101,13 @@ def create_client(stdscr, args, uiopts):
     if uiopts['mode'] == 'Single player':
         port = 44444
         host = '127.0.0.1'
-        srv = server.Server(host, port)
+        # Try up to 100 ports, otherwise fail
+        for _ in range(100):
+            try:
+                srv = server.Server(host, port)
+                break
+            except:
+                port += 1
         if too_tall or too_wide:
             stdscr.clear()
             stdscr.refresh()
@@ -132,6 +138,52 @@ def create_client(stdscr, args, uiopts):
     elif uiopts['mode'] == 'Multiplayer':
         port = int(uiopts['connection']['port'])
         host = uiopts['connection']['hostname']
+        client = netclient.PlayerClient(host, port)
+
+        if too_tall or too_wide:
+            stdscr.clear()
+            stdscr.refresh()
+            err = TOO_LARGE_MULTIPLAYER_WARNING.format(
+                (default_width, default_height), (height, width))
+            stdscr.addstr(0, 0, err)
+            stdscr.getch()
+
+        if args.playername:
+            client.send_input({'change-name': args.playername})
+        client.send_input({
+            'new-minefield': {
+                'height': height,
+                'width': width,
+                'mine_count': mine_count
+            }
+        })
+        client.get_state()
+        return client
+    elif uiopts['mode'] == 'Host and play':
+        port = 44444
+        try:
+            if not uiopts['connection']['port'] is None:
+                port = int(uiopts['connection']['port'])
+            if not args.port is None:
+                port = int(args.port)
+        except:
+            pass
+        host = '0.0.0.0'
+        try:
+            if not uiopts['connection']['hostname'] is None:
+                host = uiopts['connection']['hostname']
+            if not args.host is None:
+                host = args.host
+        except:
+            pass
+
+        srv = server.Server(host, port)
+        bout = game.Bout(
+            max_players=3,
+            minefield_size=(width, height),
+            mine_count=args.mines,
+            player_constructor=srv.create_player)
+        concurrency.concurrent(lambda: bout.add_player())()
         client = netclient.PlayerClient(host, port)
 
         if too_tall or too_wide:

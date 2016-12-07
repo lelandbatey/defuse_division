@@ -19,6 +19,7 @@ from . import curses_colors, display
 from ..concurrency import concurrent
 from .. import game
 from ..game import Bout, Keys
+from ..sound import sound
 from ..client import client as netclient
 
 DEBUG = False
@@ -297,9 +298,11 @@ def main(stdscr, client, args):
                 if waitkeyframe:
                     continue
                 if k in game.DIRECTIONKEYS:
+                    sound.SAMPLES.move_click.play()
                     move_select(k, state['players'][client.name]['minefield'])
                     eventq.put(('new-state', state))
                 elif k in [game.Keys.PROBE, game.Keys.FLAG]:
+                    sound.SAMPLES.probe.play()
                     waitkeyframe = True
                 client.send_input(keymap[event[1]])
 
