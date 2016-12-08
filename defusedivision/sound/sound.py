@@ -90,7 +90,34 @@ SOUNDS_DATA = {
             'name': 'Creative Commons - Attribution',
             'link': 'https://creativecommons.org/licenses/by/4.0/'
         }
-    }
+    },
+    'explosion': {
+        'filename': '80401__steveygos93__explosion2.wav',
+        'origin': 'http://www.freesound.org/people/steveygos93/sounds/80401/',
+        'creator': 'steveygos93',
+        'license': {
+            'name': 'Creative Commons - Attribution',
+            'link': 'https://creativecommons.org/licenses/by/3.0/'
+        }
+    },
+    'you_lose': {
+        'filename': '321910__bboyjoe-15__you-lose.wav',
+        'origin': 'https://www.freesound.org/people/bboyjoe_15/sounds/321910/',
+        'creator': 'bboyjoe_15',
+        'license': {
+            'name': 'Creative Commons - Attribution',
+            'link': 'https://creativecommons.org/licenses/by/3.0/'
+        }
+    },
+    'you_win': {
+        'filename': '321917__bboyjoe-15__you-win.wav',
+        'origin': 'https://www.freesound.org/people/bboyjoe_15/sounds/321917/',
+        'creator': 'bboyjoe_15',
+        'license': {
+            'name': 'Creative Commons - Attribution',
+            'link': 'https://creativecommons.org/licenses/by/3.0/'
+        }
+    },
 }
 
 SAMPLES = None

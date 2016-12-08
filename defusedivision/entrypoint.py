@@ -20,7 +20,8 @@ from . import game
 from .termclient.menus import mainmenu
 from .termclient import instance_setup
 
-logformat='%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s'
+logformat = '%(asctime)s:%(levelname)s:%(name)s:%(filename)s:%(lineno)d:%(funcName)s:%(message)s'
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -39,15 +40,33 @@ def main():
     parser.add_argument(
         '--mines', type=int, default=None, help="number of mines on the board")
     parser.add_argument('--debug', dest='debug', action='store_true')
-    parser.add_argument('--vimkeys', dest='vimkeys', action='store_true')
-    parser.add_argument('--maxsize', dest='maxsize', action='store_true')
-    parser.add_argument('--withsound', dest='withsound', action='store_true', help='if passed, attempts to use sound')
-    parser.add_argument('--playername', default=None, help='Name of your player')
+    parser.add_argument(
+        '--vimkeys',
+        dest='vimkeys',
+        action='store_true',
+        help='allows vim control keys while playing game (HJKL for move, space to probe)'
+    )
+    parser.add_argument(
+        '--maxsize',
+        dest='maxsize',
+        action='store_true',
+        help='makes game use largest minefield that fits on your screen')
+    parser.add_argument(
+        '--withsound',
+        dest='withsound',
+        action='store_true',
+        help='if passed, attempts to use sound')
+    parser.add_argument(
+        '--playername', default=None, help='name of your player')
     # Defaults for host and port are set elsewhere, allowing us to determine if
     # the user provided them or not.
     parser.add_argument('--host', help='remote host to connect to')
     parser.add_argument('--port', help='port of remote host')
-    parser.add_argument('--serveronly', dest='serveronly', action='store_true', help='if true, run as dedicated server')
+    parser.add_argument(
+        '--serveronly',
+        dest='serveronly',
+        action='store_true',
+        help='if true, run as dedicated server')
     parser.set_defaults(space=True)
     parser.set_defaults(debug=False)
     parser.set_defaults(maxsize=False)
@@ -56,9 +75,15 @@ def main():
     args = parser.parse_args()
 
     if args.debug:
-        logging.basicConfig(format=logformat, filename='/tmp/defusedivision.log', level=logging.DEBUG)
+        logging.basicConfig(
+            format=logformat,
+            filename='/tmp/defusedivision.log',
+            level=logging.DEBUG)
     else:
-        logging.basicConfig(format=logformat, filename='/tmp/defusedivision.log', level=logging.INFO)
+        logging.basicConfig(
+            format=logformat,
+            filename='/tmp/defusedivision.log',
+            level=logging.INFO)
     logging.debug('Launching minesweeper main')
 
     # Attempt to enable sound, if it's available
@@ -83,10 +108,14 @@ def main():
             port = args.port
 
         srv = Server(host, int(port))
-        bout = game.Bout(max_players=3, minefield_size=(args.width, args.height), player_constructor=srv.create_player)
+        bout = game.Bout(
+            max_players=3,
+            minefield_size=(args.width, args.height),
+            player_constructor=srv.create_player)
 
         try:
-            print("Running server on interface '{}' port '{}'".format(host, port))
+            print("Running server on interface '{}' port '{}'".format(host,
+                                                                      port))
             print("Type Ctrl-C to exit")
             while True:
                 bout.add_player()
@@ -97,6 +126,7 @@ def main():
 
     # Run our terminal client
     print(curses.wrapper(dotheui, args))
+
 
 def dotheui(stdscr, args):
     '''

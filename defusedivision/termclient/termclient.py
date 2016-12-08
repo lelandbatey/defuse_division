@@ -112,6 +112,8 @@ def draw_state(stdscr, state, me):
         # their board
         if not state['players'][pname]['living']:
             dead = middlefmt.format(width).format('WASTED')
+            if pname == me:
+                sound.SAMPLES.you_lose.play()
             h = height // 2
             stdscr.addstr(h, startx+xoffset, dead, curses_colors.get_colorpair('yellow-red'))
         stdscr.addstr(namey, startx + xoffset, disp_name, attr)
@@ -311,6 +313,11 @@ def main(stdscr, client, args):
 
         elif event[0] == "new-state":
             waitkeyframe = False
+            try:
+                if state['players'][client.name]['living'] != event[1]['players'][client.name]['living']:
+                    sound.SAMPLES.explosion.play()
+            except TypeError:
+                pass
             state = event[1]
             refresh_lock.acquire()
             draw_state(stdscr, state, client.name)
@@ -318,14 +325,18 @@ def main(stdscr, client, args):
             if all_dead(state):
                 draw_end_msg(stdscr, "Eliminated by mines, you lose!")
                 stdscr.refresh()
-                time.sleep(2)
+                time.sleep(3)
                 break
             # Print a 'Winner' message and exit
             victor = victorious(state)
             if victor:
+                if victor == client.name:
+                    sound.SAMPLES.you_win.play()
+                else:
+                    sound.SAMPLES.you_lose.play()
                 draw_end_msg(stdscr, "{} wins!".format(victor))
                 stdscr.refresh()
-                time.sleep(2)
+                time.sleep(3)
                 break
             # Display the ready state of the bout
             # draw_readymsg(stdscr, state)
