@@ -183,7 +183,11 @@ def create_client(stdscr, args, uiopts):
             minefield_size=(width, height),
             mine_count=args.mines,
             player_constructor=srv.create_player)
-        concurrency.concurrent(lambda: bout.add_player())()
+        def addplayers():
+            while True:
+                if bout.add_player() is None:
+                    return
+        concurrency.concurrent(addplayers)()
         client = netclient.PlayerClient(host, port)
 
         if too_tall or too_wide:
