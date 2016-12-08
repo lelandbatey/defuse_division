@@ -8,8 +8,9 @@ except ImportError:
     pygame = None
 import os
 # SUPER important that this be here. Without it, audio on Linux will be weirdly
-# broken (at least in my experience).
-os.environ['SDL_AUDIODRIVER'] = 'alsa'
+# broken (at least in my experience). HOWEVER, this only happens if I haven't
+# installed all the libsdl1.2-*-dev libraries.
+# os.environ['SDL_AUDIODRIVER'] = 'alsa'
 
 SOUND_PATH = dirname(realpath(__file__))
 _SOUND_ENABLE = False

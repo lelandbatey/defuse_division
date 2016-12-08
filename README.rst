@@ -102,10 +102,13 @@ argument. Sound is played through the ``pygame`` library, if it is installed. If
 argument is passed.
 
 On my Linux installation, to enable playing sound through ``pygame``, I had to
-set the environment variable ``SDL_AUDIODRIVER`` to the value ``alsa``, and that is
-hardcoded in the ``defusedivision/sound/sound.py`` file. If sound is not working,
-or sound is playing very erratically (such as crackling, static-like crunching
-noises while audio plays), you may try fiddling with that environment variable.
+set the environment variable ``SDL_AUDIODRIVER`` to the value ``alsa`` (but
+when I did so, CPU usage spiked markedly). If sound is not working, or sound is
+playing very erratically (such as crackling, static-like crunching noises while
+audio plays), you probably need to install the ``libsdl1.2`` libraries. To
+install on Ubuntu, I installed like so::
+
+    sudo apt install libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
 
 Sound has not been tested on any system other than Linux.
 
