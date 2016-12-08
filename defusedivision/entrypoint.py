@@ -116,7 +116,7 @@ def main():
         try:
             print("Running server on interface '{}' port '{}'".format(host,
                                                                       port))
-            print("Type Ctrl-C to exit")
+            print("Press Ctrl-C to exit")
             while True:
                 bout.add_player()
                 if len(bout.players) >= bout.max_players:
@@ -132,11 +132,25 @@ def dotheui(stdscr, args):
     '''
     Here we springboard into the various bits of user interface.
     '''
+    color_err = '''
+This terminal doesn't support color, so we cannot start the game. You can try to force this by changing the environment variable named `TERM` to be a string that tells Curses that this terminal supports colors. One way to do this would be to enter the following string on your terminal:
+
+    TERM=xterm-256color
+
+After you've set this environment variable, try to launch DefuseDivision as you normally would. Some characters may display incorrectly, or look odd, but hopefully you'll be able to play :)
+    '''
+    if not curses.has_colors():
+        return color_err
     if args.host is None:
         try:
             uiopts = mainmenu.mainmenu(stdscr)
         except KeyboardInterrupt:
             return ""
+        except curses.error as err:
+            if 'init_pair()' in str(err):
+                return color_err
+            else:
+                raise err
     else:
         uiopts = {'mode': 'Multiplayer'}
         uiopts['connection'] = dict()

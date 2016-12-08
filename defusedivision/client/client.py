@@ -7,8 +7,10 @@ import queue
 try:
     import zeroconf as zeroconfig
 except ImportError:
-    print(
-        "Zeroconf not installed, which is ok, just be aware that might change in the future."
+    logging.warn(
+        "Zeroconf not installed. As a result, we cannot search for other "
+        "servers on the network or advertise our own servers on the network. "
+        "In the future, zeroconf may become a requirement to run this program."
     )
 
 from .. import concurrency

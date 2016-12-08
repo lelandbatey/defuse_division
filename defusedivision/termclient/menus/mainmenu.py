@@ -93,7 +93,7 @@ def redraw_bomb(stdscr, refresh_lock):
 
 def mainmenu(stdscr):
     global UPDATE_BOMBSPRITE
-    if not curses.has_colors():
+    if curses.has_colors():
         curses.start_color()
     colors.colors_init()
     curses.curs_set(0)
