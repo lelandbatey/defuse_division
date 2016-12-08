@@ -1,2 +1,2 @@
 include *.md LICENSE
-recursive-include game *.wav
+recursive-include defusedivision *.wav

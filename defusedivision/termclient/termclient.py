@@ -112,8 +112,6 @@ def draw_state(stdscr, state, me):
         # their board
         if not state['players'][pname]['living']:
             dead = middlefmt.format(width).format('WASTED')
-            if pname == me:
-                sound.SAMPLES.you_lose.play()
             h = height // 2
             stdscr.addstr(h, startx+xoffset, dead, curses_colors.get_colorpair('yellow-red'))
         stdscr.addstr(namey, startx + xoffset, disp_name, attr)
@@ -279,7 +277,7 @@ def main(stdscr, client, args):
     input_reader(eventq, getinput)
     state_change_reader(eventq, client.get_state)
 
-    state = None
+    state = {'players':{}}
     waitkeyframe = False
     while True:
         try:
@@ -313,11 +311,13 @@ def main(stdscr, client, args):
 
         elif event[0] == "new-state":
             waitkeyframe = False
-            try:
-                if state['players'][client.name]['living'] != event[1]['players'][client.name]['living']:
-                    sound.SAMPLES.explosion.play()
-            except TypeError:
-                pass
+            for oldplayer in state['players']:
+                if oldplayer in event[1]['players']:
+                    if state['players'][oldplayer]['living'] != event[1]['players'][oldplayer]['living']:
+                        sound.SAMPLES.explosion.play()
+                        if oldplayer == client.name:
+                            sound.SAMPLES.you_lose.play()
+
             state = event[1]
             refresh_lock.acquire()
             draw_state(stdscr, state, client.name)
