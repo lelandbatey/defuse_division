@@ -147,7 +147,7 @@ def build_contents(cell, player):
 
     if not cell['probed']:
         rv.strng = Contents.empty
-    if cell['flaged']:
+    if cell['flagged']:
         rv.strng = Contents.flag
 
     if not player['living']:

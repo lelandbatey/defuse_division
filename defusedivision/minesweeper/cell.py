@@ -12,7 +12,7 @@ class Cell(object):
         self.y = y
         self.contents = Contents.empty
         self.probed = False
-        self.flaged = False
+        self.flagged = False
         self.neighbors = dict()
 
     def mine_contacts(self):
@@ -51,7 +51,7 @@ class Cell(object):
             "y": self.y,
             "contents": self.contents,
             "probed": self.probed,
-            "flaged": self.flaged,
+            "flagged": self.flagged,
             "neighbors": {
                 k: v.contents == Contents.mine if v else None
                 for k, v in self.neighbors.items()

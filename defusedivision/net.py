@@ -8,8 +8,8 @@ from .concurrency import concurrent
 
 def json_dump(indata):
     """Creates prettified json representation of passed in object."""
-    return json.dumps(indata, sort_keys=True, indent=4, \
-     separators=(',', ': '))#, cls=date_handler)
+    # return json.dumps(indata, sort_keys=True, indent=4, separators=(',', ': '))#, cls=date_handler)
+    return json.dumps(indata)
 
 
 SEP = b'\x00\x01\x00'
@@ -35,7 +35,7 @@ def msg_recv(conn, sendfunc, closefunc):
             inbuf = buf + data
             if SEP in inbuf:
                 parts = inbuf.split(SEP)
-                logging.debug("Length of parts: {}".format(len(parts)))
+                # logging.debug("Length of parts: {}".format(len(parts)))
                 tosend = [parts[0]]
                 for p in parts[1:-1]:
                     tosend.append(p)

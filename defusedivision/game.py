@@ -112,7 +112,7 @@ def _probe_selected(field):
     """
     x, y = field.selected
     cell = field.board[x][y]
-    if cell.flaged:
+    if cell.flagged:
         return True
     # Create a foothold for the first probe
     if _first_probe(field):
@@ -127,7 +127,7 @@ def _probe_selected(field):
 def _flag_selected(field):
     x, y = field.selected
     cell = field.board[x][y]
-    cell.flaged = not cell.flaged
+    cell.flagged = not cell.flagged
 
 
 def check_win(mfield):
@@ -136,9 +136,9 @@ def check_win(mfield):
     for h in range(mfield.height):
         for w in range(mfield.width):
             c = mfield.board[w][h]
-            if c.contents == Contents.mine and c.flaged:
+            if c.contents == Contents.mine and c.flagged:
                 correct_flags += 1
-            if c.flaged:
+            if c.flagged:
                 flags += 1
     if correct_flags == mfield.mine_count and flags == correct_flags:
         return True
