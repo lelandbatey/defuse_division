@@ -60,9 +60,9 @@ def _move_select(direction, field):
     field.selected = [nx, ny]
 
 
-def _create_foothold(field):
+def create_foothold(field):
     """
-    Function _create_foothold will remove mines from around the currently
+    Function create_foothold will remove mines from around the currently
     selected cell, ensuring that the current cell cannot have a mine, and that
     probing that cell will open up some amount of space.
     """
@@ -116,7 +116,7 @@ def _probe_selected(field):
         return True
     # Create a foothold for the first probe
     if _first_probe(field):
-        _create_foothold(field)
+        create_foothold(field)
     cell.probe()
 
     if cell.contents == Contents.mine:
